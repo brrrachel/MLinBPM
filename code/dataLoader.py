@@ -1,11 +1,13 @@
 import xml.etree.ElementTree as et
 from collections import Counter
+from dateutil.parser import parse
 
 path = '../data/'
 files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
 
 
-def load_xes(file):
+def _load_xes(file):
+    print('Loading file: ', file)
     log = {}
 
     tree = et.parse(path + file)
@@ -35,14 +37,18 @@ def load_xes(file):
                 if info.attrib['key'] == 'org:resource':
                     event['resource'] = info.attrib['value']
                 if info.attrib['key'] == 'time:timestamp':
-                    event['start'] = info.attrib['value']
+                    event['start'] = parse(info.attrib['value']).replace(tzinfo=None)
                 if info.attrib['key'] == 'dateFinished':
-                    event['end'] = info.attrib['value']
+                    event['end'] = parse(info.attrib['value']).replace(tzinfo=None)
                 if info.attrib['key'] == 'planned':
-                    event['plannend'] = info.attrib['value']
+                    event['planned'] = parse(info.attrib['value']).replace(tzinfo=None)
                 if info.attrib['key'] == 'activityNameEN':
                     event['activity'] = info.attrib['value']
 
+            if 'planned' in event:
+                event['duration'] = event['planned'] - event['start']
+            if not('planned' in event) or (event['duration'].days < 1):
+                event['duration'] = event['end'] - event['start']
             events.append(event)
 
         log[trace_id] = {
@@ -54,6 +60,13 @@ def load_xes(file):
         }
 
     return log
+
+
+def load_data():
+    data = {}
+    for file in files:
+        data.update(_load_xes(file))
+    return data
 
 
 def preprocess(data, minOccurenceForActivity = 50):
@@ -88,13 +101,3 @@ def get_cases(data):
         cases.add(tuple([event['activity'] for event in data[trace]['events']]))
 
     return cases
-
-
-if __name__ == '__main__':
-    data = {}
-
-    for file in files:
-        data.update(load_xes(file))
-
-    data = preprocess(data)
-    cases = get_cases(data)
