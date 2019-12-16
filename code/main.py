@@ -8,10 +8,10 @@ if __name__ == '__main__':
     print('Data Loaded')
 
     training_data, prediction_cases = get_test_samples(data)
-
+    # TODO: data for the traces does not contain the events and i can't figure why
     allocator = QValueAllocator()
     print('Train Model')
-    allocator.fit(training_data, {})
+    allocator.fit(training_data)
     print('Allocate Cases')
     pred = allocator.predict(prediction_cases)
 

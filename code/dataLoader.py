@@ -4,7 +4,7 @@ from collections import Counter
 from dateutil.parser import parse
 
 path = '../data/'
-files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
+files = ['BPIC15_1.xes'] #, 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
 one_second = datetime.timedelta(hours=0, minutes=0, seconds=1)
 
 
@@ -34,10 +34,10 @@ def _load_xes(file):
 
         last_end = start
         for e in trace.iter('{http://www.xes-standard.org/}event'):
-
             event = {}
 
             for info in e:
+                #print(info.attrib['key'])
                 if info.attrib['key'] == 'org:resource':
                     event['resource'] = info.attrib['value']
                 if info.attrib['key'] == 'time:timestamp':
@@ -60,7 +60,6 @@ def _load_xes(file):
             # INFO: planned is not useful because sometimes planned or end is before start
 
             events.append(event)
-
         log[trace_id] = {
             'trace_id': trace_id,
             'start': start,
