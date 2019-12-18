@@ -24,7 +24,7 @@ if __name__ == '__main__':
         allocator = QValueAllocator()
 
     print('Train Model')
-    allocator.fit(training_data, {})
+    allocator.fit(training_data)
     print('Allocate Cases')
     pred = allocator.predict(prediction_cases)
 
