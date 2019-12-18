@@ -38,7 +38,6 @@ def _load_xes(file):
             event = {}
 
             for info in e:
-                #print(info.attrib['key'])
                 if info.attrib['key'] == 'org:resource':
                     event['resource'] = info.attrib['value']
                 if info.attrib['key'] == 'time:timestamp':
@@ -92,10 +91,16 @@ def _safe_preprocessed_data(data, threshold):
         json.dump(data, fp, default=converter)
 
 
-def load_data(occurence_threshold):
+def load_data(threshold):
     data = {}
-    for file in files:
-        data.update(_load_xes(file))
+    preprocessed_data = _load_preprocessed_data(threshold)
+    if preprocessed_data:
+        data = preprocessed_data
+    else:
+        for file in files:
+            data.update(_load_xes(file))
+        data = preprocess(data, threshold)
+        _safe_preprocessed_data(data, threshold)
     return data
 
 
@@ -105,22 +110,32 @@ def preprocess(data, threshold):
 
     def get_occurence(d):
         tasks = []
-        for trace in data.keys():
-            tasks += [event['activity'] for event in data[trace]['events']]
+        for trace in d.keys():
+            tasks += [event['activity'] for event in d[trace]['events']]
         return Counter(tasks)
 
     occurences_before = get_occurence(data)
+    min_occuence = sum(list(occurences_before.values())) * threshold
+    activities_to_delete = []
 
     for t in occurences_before.keys():
-        occurence_of_activity = occurences_before[t] / sum(list(occurences_before.values()))
-        if occurence_of_activity / occurenceThreshold:
-            for trace in data.keys():
-                for i in reversed(range(len(data[trace]['events']))):
-                    if data[trace]['events'][i]['activity'] == t:
-                        del data[trace]['events'][i]
+        if occurences_before[t] < min_occuence:
+            activities_to_delete.append(t)
 
-    occurences_after = get_occurence()
+    for trace in data.keys():
+        prepocessed_data[trace] = data[trace].copy()
+        prepocessed_data[trace]['events'] = []
+        for event in data[trace]['events']:
+            if event['activity'] not in activities_to_delete:
+                prepocessed_data[trace]['events'].append(event.copy())
+
+    occurences_after = get_occurence(prepocessed_data)
+
     print('Removed ' + str(1 - len(list(occurences_after.values())) / len(list(occurences_before.values()))) + ' % of the unique activities')
     print('Removed ' + str(1 - sum(list(occurences_after.values())) / sum(list(occurences_before.values()))) + ' % of all activities')
 
-    return data
+    if len(list(occurences_after.values())) == 0:
+        print('Threshold is too high, no activities left.')
+        exit(0)
+
+    return prepocessed_data
