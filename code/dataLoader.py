@@ -1,7 +1,9 @@
 import xml.etree.ElementTree as et
 import datetime
+import json
 from collections import Counter
 from dateutil.parser import parse
+from tqdm import tqdm
 
 path = '../data/'
 files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
@@ -9,7 +11,6 @@ one_second = datetime.timedelta(hours=0, minutes=0, seconds=1)
 
 
 def _load_xes(file):
-    print('Loading file ', file)
     log = {}
 
     tree = et.parse(path + file)
@@ -72,25 +73,46 @@ def _load_xes(file):
     return log
 
 
-def load_data():
+def _get_filename(threshold):
+    return path + 'preprocessed/preprocessed_' + str(threshold).split('.')[1] + '.json'
+
+
+def _load_preprocessed_data(threshold):
+    try:
+        with open(_get_filename(threshold), 'r') as fp:
+            return json.load(fp)
+    except:
+        return False
+
+
+def _safe_preprocessed_data(data, threshold):
+    def converter(o):
+        if isinstance(o, datetime.datetime) or isinstance(o, datetime.timedelta):
+            return o.__str__()
+    with open(_get_filename(threshold), 'w') as fp:
+        json.dump(data, fp, default=converter)
+
+
+def load_data(occurence_threshold):
     data = {}
     for file in files:
         data.update(_load_xes(file))
     return data
 
 
-def preprocess(data, occurenceThreshold = 0.3):
+def preprocess(data, threshold):
     print('Start Preprocessing')
+    prepocessed_data = {}
 
-    def get_occurence():
+    def get_occurence(d):
         tasks = []
         for trace in data.keys():
             tasks += [event['activity'] for event in data[trace]['events']]
         return Counter(tasks)
 
-    occurences_before = get_occurence()
+    occurences_before = get_occurence(data)
 
-    for t in occurences_before:
+    for t in occurences_before.keys():
         occurence_of_activity = occurences_before[t] / sum(list(occurences_before.values()))
         if occurence_of_activity / occurenceThreshold:
             for trace in data.keys():
