@@ -1,6 +1,7 @@
 from dataLoader import load_data, preprocess
 from utils import get_test_samples
 from qValue import QValueAllocator
+from utils import get_resources
 
 from optparse import OptionParser
 
@@ -22,6 +23,9 @@ if __name__ == '__main__':
     if options.q_value:
         print('Using QValueAllocator')
         allocator = QValueAllocator()
+        resources = get_resources(data)
+        for resource in resources:
+            allocator.add_resource(resource)
 
     print('Train Model')
     allocator.fit(training_data)
