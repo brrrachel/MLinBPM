@@ -34,8 +34,8 @@ class QValueAllocator:
                 self.q[event][resource] = 0
 
         # add resources
-        for id in resources:
-            self.resources[id] = Resource(id)
+        for resource_id in resources:
+            self.resources[resource_id] = Resource(resource_id)
 
         # iterate over each event of the traces and update the q-value dict by update formula
         for trace_number in data:
@@ -60,7 +60,9 @@ class QValueAllocator:
                 print(action + ": " + resource + ": " + str(self.q[action][resource]))
         return self
 
+    # TODO: rename each thread, keep a list of running threads, is there a join needed?
     def predict(self, activities):
+        running_threads = []
         i = 0
         # iterate over all activities
         while i < len(activities):
@@ -76,6 +78,7 @@ class QValueAllocator:
                         best_resource = resource
                 # create thread for executing activity
                 executing_activity = threading.Thread(target=best_resource.allocate_for_activity(activity))
+                running_threads.append(executing_activity)
                 # run thread
                 executing_activity.start()
                 print("Resource {} is executing activity {} .").format(best_resource.resource_id, activity['activity'])
@@ -85,4 +88,6 @@ class QValueAllocator:
                 # no resource is available therefore sleep one second and try again
                 print("no resources available --> waiting for resource ...")
                 time.sleep(1)
+        for thread in running_threads:
+            thread.join()
         print("finished assigning tasks")
