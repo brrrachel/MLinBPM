@@ -7,9 +7,11 @@ class Resource:
     resource_id = None
     is_available = True
     activity = None
+    skills = None
 
-    def __init__(self, resource_id):
+    def __init__(self, resource_id, skills):
         self.resource_id = resource_id
+        self.skills = skills
 
     def simulate_busy(self, sec):
         for i in range(0, sec):

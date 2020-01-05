@@ -2,6 +2,7 @@ import xml.etree.ElementTree as et
 import datetime
 import json
 from collections import Counter
+from plotting import occurrence_plotting
 from dateutil.parser import parse
 from tqdm import tqdm
 
@@ -114,12 +115,13 @@ def preprocess(data, threshold):
             tasks += [event['activity'] for event in d[trace]['events']]
         return Counter(tasks)
 
-    occurences_before = get_occurence(data)
-    min_occuence = sum(list(occurences_before.values())) * threshold
+    occurrences_before = get_occurence(data)
+    occurrence_plotting(occurrences_before)
+    min_occuence = sum(list(occurrences_before.values())) * threshold
     activities_to_delete = []
 
-    for t in occurences_before.keys():
-        if occurences_before[t] < min_occuence:
+    for t in occurrences_before.keys():
+        if occurrences_before[t] < min_occuence:
             activities_to_delete.append(t)
 
     for trace in data.keys():
@@ -129,12 +131,12 @@ def preprocess(data, threshold):
             if event['activity'] not in activities_to_delete:
                 prepocessed_data[trace]['events'].append(event.copy())
 
-    occurences_after = get_occurence(prepocessed_data)
+    occurrences_after = get_occurence(prepocessed_data)
 
-    print('Removed ' + str(1 - len(list(occurences_after.values())) / len(list(occurences_before.values()))) + ' % of the unique activities')
-    print('Removed ' + str(1 - sum(list(occurences_after.values())) / sum(list(occurences_before.values()))) + ' % of all activities')
+    print('Removed ' + str(1 - len(list(occurrences_after.values())) / len(list(occurrences_before.values()))) + ' % of the unique activities')
+    print('Removed ' + str(1 - sum(list(occurrences_after.values())) / sum(list(occurrences_before.values()))) + ' % of all activities')
 
-    if len(list(occurences_after.values())) == 0:
+    if len(list(occurrences_after.values())) == 0:
         print('Threshold is too high, no activities left.')
         exit(0)
 

@@ -1,9 +1,9 @@
 import datetime
 import time
+import threading
 from pytimeparse.timeparse import timeparse
 from utils import get_activities, get_resources
 from resource import Resource
-import threading
 
 
 class QValueAllocator:
@@ -15,10 +15,7 @@ class QValueAllocator:
     def __init__(self):
         return
 
-    def add_resource(self, resource_id):
-        self.resources[resource_id] = Resource(resource_id)
-
-    def get_available_resources(self):
+    def _get_available_resources(self):
         available_resources = []
         for resource in self.resources:
             if resource.is_available:
@@ -26,14 +23,19 @@ class QValueAllocator:
         return available_resources
 
     def fit(self, data):
-        # init q_value dict
 
         activities = get_activities(data)
         resources = get_resources(data)
+
+        # init q_value dict
         for event in activities:
             self.q[event] = {}
             for resource in resources:
                 self.q[event][resource] = 0
+
+        # add resources
+        for id in resources:
+            self.resources[id] = Resource(id)
 
         # iterate over each event of the traces and update the q-value dict by update formula
         for trace_number in data:
@@ -64,14 +66,13 @@ class QValueAllocator:
         while i < len(activities):
             activity = activities[i]
             # get available resources
-            available_resources = self.get_available_resources()
+            available_resources = self._get_available_resources()
             # if there are any:
             if available_resources:
                 # find best resource regarding the qValue
                 best_resource = available_resources[0]
                 for resource in available_resources:
-                    if self.q[activity['activity']][resource.resource_id] < self.q[activity['activity']][
-                        best_resource.resource_id]:
+                    if self.q[activity['activity']][resource.resource_id] < self.q[activity['activity']][best_resource.resource_id]:
                         best_resource = resource
                 # create thread for executing activity
                 executing_activity = threading.Thread(target=best_resource.allocate_for_activity(activity))
