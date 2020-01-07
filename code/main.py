@@ -1,5 +1,4 @@
 from dataLoader import load_data, preprocess
-from plotting import duration_plotting
 from allocator.qValue import QValueAllocator
 from allocator.greedy import GreedyAllocator
 
@@ -18,8 +17,6 @@ if __name__ == '__main__':
     print('Data Loaded')
 
     allocator = None
-
-    #duration_plotting(data)
 
     if options.greedy:
         print('Using GreedyAllocator')
