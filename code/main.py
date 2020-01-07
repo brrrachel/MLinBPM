@@ -7,7 +7,8 @@ from optparse import OptionParser
 if __name__ == '__main__':
 
     parser = OptionParser()
-    parser.add_option("-t", dest="threshold", help="Threshold for min occurence of an activity in the whole dataset", default=0.019, type="float", action="store")
+    parser.add_option("-t", dest="threshold", help="Threshold for min occurence of an activity in the whole dataset",
+                      default=0.019, type="float", action="store")
     parser.add_option("-g", dest="greedy", help="Run Greedy Allocator", action="store_true", default=True)
     parser.add_option("-q", dest="q_value", help="Run QValue Allocator", action="store_true", default=False)
     (options, args) = parser.parse_args()
@@ -17,17 +18,16 @@ if __name__ == '__main__':
     print('Data Loaded')
 
     allocator = None
-
-    if options.greedy:
-        print('Using GreedyAllocator')
-        allocator = GreedyAllocator()
-    elif options.q_value:
+    if options.q_value:
         print('Using QValueAllocator')
         allocator = QValueAllocator()
+    elif options.greedy:
+        print('Using GreedyAllocator')
+        allocator = GreedyAllocator()
 
     print('Train Model')
     allocator.fit(data)
     print('Allocate Cases')
-    pred = allocator.predict(data)
+    allocator.predict(data)
 
     print('Finished')
