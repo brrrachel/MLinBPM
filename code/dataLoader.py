@@ -51,6 +51,8 @@ def _load_xes(file):
                 if info.attrib['key'] == 'activityNameEN':
                     event['activity'] = info.attrib['value']
 
+            event['status'] = 'free'
+
             event['duration'] = event['end'] - event['start']
             if event['duration'] < one_second:
                 event['duration'] = event['end'] - last_end

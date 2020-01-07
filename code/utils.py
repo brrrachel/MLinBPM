@@ -1,4 +1,5 @@
 from dateutil.parser import parse
+import datetime
 
 
 def _get_cases(data):
@@ -15,11 +16,41 @@ def get_activities(data):
     return set(activities)
 
 
+def get_trace_endtime(trace):
+    if type(trace['start']) is str:
+        start = parse(trace['start'])
+    else:
+        start = trace['start']
+    duration = datetime.timedelta(hours=0, minutes=0, seconds=0)
+    for event in trace['events']:
+        if type(event['duration']) is str:
+            if ' days, ' in event['duration']:
+                days, timestamp = event['duration'].split(' days, ')
+            elif ' day, ' in event['duration']:
+                days, timestamp = event['duration'].split(' day, ')
+            else:
+                timestamp = event['duration']
+                days = 0
+            t = datetime.datetime.strptime(timestamp, "%H:%M:%S") + datetime.timedelta(days=int(days))
+            duration += datetime.timedelta(days=t.day, hours=t.hour, minutes=t.minute, seconds=t.second)
+        else:
+            duration += event['duration']
+    return start + duration
+
+
 def get_latest_trace(data):
     latest_trace = data[next(iter(data.keys()))]
+    if latest_trace['end'] != '':
+        latest_end = parse(latest_trace['end'])
+    else:
+        latest_end = get_trace_endtime(latest_trace)
     for trace_id in data.keys():
         trace = data[trace_id]
-        if parse(trace['end']) > parse(latest_trace['end']):
+        if trace['end'] != '':
+            end = parse(trace['end'])
+        else:
+            end = get_trace_endtime(trace)
+        if end > latest_end:
             latest_trace = trace
     return latest_trace
 

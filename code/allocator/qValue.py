@@ -1,7 +1,6 @@
 import datetime
-import time
 from pytimeparse.timeparse import timeparse
-from utils import get_activities, get_resources, get_earliest_trace, get_latest_trace
+from utils import get_activities, get_resources, get_earliest_trace, get_latest_trace, get_trace_endtime
 from resource import Resource
 from dateutil.parser import parse
 
@@ -21,7 +20,7 @@ class QValueAllocator:
         for resource_id in self.resources.keys():
             resource = self.resources[resource_id]
             if resource.is_available:
-                available_resources.append(resource)
+                available_resources.append(resource_id)
         return available_resources
 
     def fit(self, data):
@@ -49,70 +48,77 @@ class QValueAllocator:
                 if i < len(trace['events']) - 1:
                     new_state = trace['events'][i + 1]['activity']
                     duration = timeparse(event['duration'])
-                    reward = datetime.timedelta(duration).total_seconds()
 
                     q_min = 1000000000000000
                     for q_action in self.q[new_state]:
                         if self.q[new_state][q_action] < q_min:
                             q_min = self.q[new_state][q_action]
-                    self.q[state][action] = (self.lr - 1) * self.q[state][action] + self.lr * (
-                            reward + (self.gamma * q_min))
+                    self.q[state][action] = abs(round((self.lr - 1) * self.q[state][action] + self.lr * (
+                            duration + (self.gamma * q_min)), 2))
         for action in self.q:
             for resource in self.q[action]:
                 print(action + ": " + resource + ": " + str(self.q[action][resource]))
         return self
 
-    def allocate_resource(self, activity):
+    def allocate_resource(self, trace_id, activity):
         # if there are any:
         available_resources = self._get_available_resources()
         if available_resources:
             # find best resource regarding the qValue
-            best_resource = available_resources[0]
-            for resource in available_resources:
+            best_resource = self.resources[available_resources[0]]
+            for resource_id in available_resources:
+                resource = self.resources[resource_id]
                 if self.q[activity['activity']][resource.get_resource_id()] != 0:
-                    if self.q[activity['activity']][resource.get_resource_id()] < self.q[activity['activity']][
-                        best_resource.get_resource_id()]:
-                        best_resource = resource
+                    if self.q[activity['activity']][resource.get_resource_id()] > self.q[activity['activity']][
+                        best_resource.get_resource_id()]: best_resource = resource
             print("Resource " + str(best_resource.get_resource_id()) + " allocated for activity " + activity[
-                'activity'] + ".")
-            best_resource.allocate_for_activity(self, activity)
-            return True
+                'activity'] + ".\n")
+            abs_q_value = self.q[activity['activity']][best_resource.get_resource_id()]
+            best_resource.allocate_for_activity(trace_id, activity, abs_q_value)
+            return 'busy'
         else:
-            print("no resources available --> waiting for resources ...")
-            return False
+            return 'free'
 
     def proceed_resources(self):
-        for resource in self.resources:
+        for resource_id in self.resources:
+            resource = self.resources[resource_id]
             if not resource.is_available:
                 finished = resource.proceed_activity()
+                if finished:
+                    trace_id = resource.trace_id
+                    self.enabled_traces[trace_id][0]['status'] = 'done'
+                    resource.reset()
 
     def predict(self, data):
         earliest_trace = get_earliest_trace(data)
         latest_trace = get_latest_trace(data)
         actual_time = parse(earliest_trace['start'])
         trace_ids = list(data.keys())
-        while actual_time <= parse(latest_trace['end']):
-
+        print(get_trace_endtime(latest_trace))
+        while actual_time <= get_trace_endtime(latest_trace) + datetime.timedelta(weeks=20.0):
+            print(actual_time)
             # Search for new traces at actual time
             for i, trace_key in enumerate(trace_ids):
                 trace = data[trace_key]
-                if parse(trace['start']) == actual_time:
+                if parse(trace['start']) <= actual_time:
                     self.enabled_traces[trace_key] = list(trace['events'])
+                    print('trace: ' + trace_key + ' is started.')
                     trace_ids.pop(i)
 
             # All available traces which need to be allocated
             for trace_id in self.enabled_traces:
                 trace_activities = self.enabled_traces[trace_id]
-                if trace_activities[0]['status'] == 'free':
-                    trace_activities[0]['status'] = self.allocate_resource(trace_activities[0])
-                elif trace_activities[0]['status'] == 'done':
-                    # remove activity from trace
-                    trace_activities.pop(0)
-                    if trace_activities:
-                        trace_activities[0]['status'] = self.allocate_resource(trace_activities[0])
-                    else:
-                        del (self.enabled_traces[trace_id])
-                else:  # busy
-                    break
+                if trace_activities:
+                    if trace_activities[0]['status'] == 'free':
+                        trace_activities[0]['status'] = self.allocate_resource(trace_id, trace_activities[0])
+                    elif trace_activities[0]['status'] == 'done':
+                        # remove activity from trace
+                        trace_activities.pop(0)
+                        if trace_activities:
+                            trace_activities[0]['status'] = self.allocate_resource(trace_id, trace_activities[0])
+                    else:  # busy
+                        continue
             self.proceed_resources()
-            actual_time += datetime.timedelta(seconds=1)
+            actual_time += datetime.timedelta(seconds=30)
+        for trace in self.enabled_traces:
+            print(trace, len(self.enabled_traces[trace]))
