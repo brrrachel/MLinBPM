@@ -2,12 +2,13 @@ import xml.etree.ElementTree as et
 import datetime
 import json
 from collections import Counter
-from plotting import occurrence_plotting
+from plotting import occurrence_plotting, duration_plotting
 from dateutil.parser import parse
+from operator import getitem
 from tqdm import tqdm
 
 path = '../data/'
-files = ['BPIC15_1.xes'] #, 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
+files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
 one_second = datetime.timedelta(hours=0, minutes=0, seconds=1)
 
 
@@ -88,9 +89,9 @@ def _safe_preprocessed_data(data, threshold):
     def converter(o):
         if isinstance(o, datetime.datetime) or isinstance(o, datetime.timedelta):
             return o.__str__()
+    data = dict(sorted(data.items(), key = lambda x: getitem(x[1], 'start')))
     with open(_get_filename(threshold), 'w') as fp:
         json.dump(data, fp, default=converter)
-
 
 def load_data(threshold):
     data = {}
@@ -102,6 +103,8 @@ def load_data(threshold):
             data.update(_load_xes(file))
         data = preprocess(data, threshold)
         _safe_preprocessed_data(data, threshold)
+        data = _load_preprocessed_data(threshold)
+        duration_plotting(data, threshold)
     return data
 
 
@@ -116,7 +119,6 @@ def preprocess(data, threshold):
         return Counter(tasks)
 
     occurrences_before = get_occurence(data)
-    occurrence_plotting(occurrences_before)
     min_occuence = sum(list(occurrences_before.values())) * threshold
     activities_to_delete = []
 
@@ -125,13 +127,15 @@ def preprocess(data, threshold):
             activities_to_delete.append(t)
 
     for trace in data.keys():
-        prepocessed_data[trace] = data[trace].copy()
-        prepocessed_data[trace]['events'] = []
-        for event in data[trace]['events']:
-            if event['activity'] not in activities_to_delete:
-                prepocessed_data[trace]['events'].append(event.copy())
+        if datetime.datetime(year=2010, month=7, day=1) < data[trace]['start'] < datetime.datetime(year=2015, month=2, day=15):
+            prepocessed_data[trace] = data[trace].copy()
+            prepocessed_data[trace]['events'] = []
+            for event in data[trace]['events']:
+                if event['activity'] not in activities_to_delete:
+                    prepocessed_data[trace]['events'].append(event.copy())
 
     occurrences_after = get_occurence(prepocessed_data)
+    occurrence_plotting(occurrences_after, threshold)
 
     print('Removed ' + str(1 - len(list(occurrences_after.values())) / len(list(occurrences_before.values()))) + ' % of the unique activities')
     print('Removed ' + str(1 - sum(list(occurrences_after.values())) / sum(list(occurrences_before.values()))) + ' % of all activities')
