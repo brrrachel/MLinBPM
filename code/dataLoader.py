@@ -127,11 +127,12 @@ def preprocess(data, threshold):
             activities_to_delete.append(t)
 
     for trace in data.keys():
-        prepocessed_data[trace] = data[trace].copy()
-        prepocessed_data[trace]['events'] = []
-        for event in data[trace]['events']:
-            if event['activity'] not in activities_to_delete:
-                prepocessed_data[trace]['events'].append(event.copy())
+        if datetime.datetime(year=2010, month=7, day=1) < data[trace]['start'] < datetime.datetime(year=2015, month=2, day=15):
+            prepocessed_data[trace] = data[trace].copy()
+            prepocessed_data[trace]['events'] = []
+            for event in data[trace]['events']:
+                if event['activity'] not in activities_to_delete:
+                    prepocessed_data[trace]['events'].append(event.copy())
 
     occurrences_after = get_occurence(prepocessed_data)
     occurrence_plotting(occurrences_after, threshold)
