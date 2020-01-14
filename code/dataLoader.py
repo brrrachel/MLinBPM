@@ -8,7 +8,7 @@ from operator import getitem
 from tqdm import tqdm
 
 path = '../data/'
-files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
+files = ['BPIC15_1.xes']#, 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
 one_second = datetime.timedelta(hours=0, minutes=0, seconds=1)
 
 

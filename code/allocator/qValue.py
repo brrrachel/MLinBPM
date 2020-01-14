@@ -21,7 +21,7 @@ class QValueAllocator:
         available_resources = []
         for resource_id in self.resources.keys():
             resource = self.resources[resource_id]
-            if resource.is_available:
+            if resource.workload < 1:
                 available_resources.append(resource_id)
         return available_resources
 
@@ -71,25 +71,16 @@ class QValueAllocator:
             best_resource = self.resources[available_resources[0]]
             for resource_id in available_resources:
                 resource = self.resources[resource_id]
-                if self.q[activity['activity']][resource.get_resource_id()] != 0:
-                    if self.q[activity['activity']][resource.get_resource_id()] > self.q[activity['activity']][
+                if self.q[activity['activity']][resource.resource_id] != 0:
+                    if self.q[activity['activity']][resource.resource_id] > self.q[activity['activity']][
                         best_resource.get_resource_id()]: best_resource = resource
-            print("Resource " + str(best_resource.get_resource_id()) + " allocated for activity " + activity['activity'] + ".")
-            abs_q_value = self.q[activity['activity']][best_resource.get_resource_id()]
-            best_resource.allocate_for_activity(trace_id, activity, abs_q_value)
+            print("Resource " + str(best_resource.resource_id) + " allocated for activity " + activity['activity'] + " of trace " + trace_id + " and has now a workload of " + str(best_resource.workload + 1) + ".")
+            abs_q_value = self.q[activity['activity']][best_resource.resource_id]
+            activity['duration'] = abs_q_value
+            best_resource.allocate_for_activity(trace_id, activity)
             return 'busy'
         else:
             return 'free'
-
-    def proceed_resources(self):
-        for resource_id in self.resources:
-            resource = self.resources[resource_id]
-            if not resource.is_available:
-                finished = resource.proceed_activity()
-                if finished:
-                    trace_id = resource.trace_id
-                    self.enabled_traces[trace_id][0]['status'] = 'done'
-                    resource.reset()
 
     def predict(self, data):
         simulator = Simulator()

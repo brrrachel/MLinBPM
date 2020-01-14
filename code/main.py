@@ -1,5 +1,6 @@
 from dataLoader import load_data, preprocess
 from allocator.qValue import QValueAllocator
+from allocator.qValueWorkload import QValueAllocatorWorkload
 from allocator.greedy import GreedyAllocator
 
 from optparse import OptionParser
@@ -19,7 +20,7 @@ if __name__ == '__main__':
     allocator = None
     if options.q_value:
         print('Using QValueAllocator')
-        allocator = QValueAllocator()
+        allocator = QValueAllocatorWorkload()
     elif options.greedy:
         print('Using GreedyAllocator')
         allocator = GreedyAllocator()

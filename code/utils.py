@@ -1,5 +1,6 @@
 from dateutil.parser import parse
 import datetime
+import math
 
 
 def _get_cases(data):
@@ -60,7 +61,7 @@ def get_earliest_trace(data):
     earliest_trace = data[next(iter(data.keys()))]
     for trace_id in data.keys():
         trace = data[trace_id]
-        if parse(trace['start']) > parse(earliest_trace['start']):
+        if parse(trace['start']) < parse(earliest_trace['start']):
             earliest_trace = trace
     return earliest_trace
 
@@ -87,13 +88,27 @@ def get_time_range(data, start_time):
     end_time_allocation = get_trace_endtime(latest_trace)
     return int((end_time_allocation - start_time).total_seconds())
 
+
 def proceed_resources(enabled_traces, resources):
     for resource_id in resources:
         resource = resources[resource_id]
-        if not resource.is_available:
+        if resource.workload > 0:
             finished = resource.proceed_activity()
             if finished:
                 trace_id = resource.trace_id
+                print(trace_id)
                 enabled_traces[trace_id][0]['status'] = 'done'
-                resource.reset()
+                resource.set_as_free()
     return resources, enabled_traces
+
+
+def compute_timedelta(seconds):
+    num_days = math.floor(seconds / (24 * 3600))
+    rest_seconds = seconds - (num_days * 24 * 3600)
+    num_hours = math.floor(rest_seconds / 3600)
+    rest_seconds = rest_seconds - (num_hours * 3600)
+    num_minutes = math.floor(rest_seconds / 60)
+    rest_seconds = rest_seconds - (num_minutes * 60)
+
+    return datetime.timedelta(days=num_days, hours=num_hours, minutes=num_minutes, seconds=rest_seconds)
+
