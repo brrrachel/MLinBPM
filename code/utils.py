@@ -52,6 +52,7 @@ def get_latest_trace(data):
             end = get_trace_endtime(trace)
         if end > latest_end:
             latest_trace = trace
+    print("reguläres Ende des Logs: " + str(end))
     return latest_trace
 
 
@@ -78,3 +79,21 @@ def get_resources(data):
     for trace in data.keys():
         resources += [event['resource'] for event in data[trace]['events']]
     return set(resources)
+
+
+def get_time_range(data, start_time):
+    latest_trace = get_latest_trace(data)
+    print(get_trace_endtime(latest_trace))
+    end_time_allocation = get_trace_endtime(latest_trace)
+    return int((end_time_allocation - start_time).total_seconds())
+
+def proceed_resources(self, resources, enabled_traces):
+    for resource_id in resources:
+        resource = resources[resource_id]
+        if not resource.is_available:
+            finished = resource.proceed_activity()
+            if finished:
+                trace_id = resource.trace_id
+                enabled_traces[trace_id][0]['status'] = 'done'
+                resource.reset()
+    return resources, enabled_traces
