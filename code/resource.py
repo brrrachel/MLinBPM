@@ -37,7 +37,7 @@ class Resource:
             self.planned_duration -= 2
         self.actual_duration += 1
         if self.planned_duration <= 0:
-            # print("Resource " + str(self.resource_id) + " finished activity " + self.activity['activity'] + ".")
+            print("Resource " + str(self.resource_id) + " finished activity " + self.activity['activity'] + ".")
             return True
         else:
             return False

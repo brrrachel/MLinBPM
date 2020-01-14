@@ -2,6 +2,7 @@ import datetime
 from pytimeparse.timeparse import timeparse
 from utils import get_activities, get_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, proceed_resources, get_time_range
 from resource import Resource
+from simulator import Simulator
 from dateutil.parser import parse
 from tqdm import tqdm
 
@@ -11,7 +12,7 @@ class QValueAllocator:
     lr = 0.5
     gamma = 0.9
     resources = {}
-    enabled_traces = {}  # dictionary key: trace_id value: list of activities
+    results = {}
 
     def __init__(self):
         return
@@ -23,27 +24,6 @@ class QValueAllocator:
             if resource.is_available:
                 available_resources.append(resource_id)
         return available_resources
-
-    def allocate_activities(self, current_time, allocator):
-        # All available traces which need to be allocated
-        for trace_id in allocator.enabled_traces:
-            trace_activities = allocator.enabled_traces[trace_id]
-            if trace_activities:
-                if trace_activities[0]['status'] == 'free':
-                    trace_activities[0]['status'] = allocator.allocate_resource(trace_id, trace_activities[0])
-                    if trace_activities[0]['status'] == 'busy':
-                        trace_activities[0]['start'] = current_time
-                elif trace_activities[0]['status'] == 'done':
-                    # remove activity from trace
-                    trace_activities[0]['end'] = current_time
-                    # trace_activities[0]['duration'] = trace_activities[0]['end'] - trace_activities[0]['start']
-                    allocator.results[trace_id].append(trace_activities[0])
-                    trace_activities.pop(0)
-                    if trace_activities:
-                        trace_activities[0]['status'] = allocator.allocate_resource(trace_id, trace_activities[0])
-                else:  # busy
-                    continue
-        return
 
     def fit(self, data):
 
@@ -94,7 +74,7 @@ class QValueAllocator:
                 if self.q[activity['activity']][resource.get_resource_id()] != 0:
                     if self.q[activity['activity']][resource.get_resource_id()] > self.q[activity['activity']][
                         best_resource.get_resource_id()]: best_resource = resource
-            # print("Resource " + str(best_resource.get_resource_id()) + " allocated for activity " + activity['activity'] + ".\n")
+            print("Resource " + str(best_resource.get_resource_id()) + " allocated for activity " + activity['activity'] + ".")
             abs_q_value = self.q[activity['activity']][best_resource.get_resource_id()]
             best_resource.allocate_for_activity(trace_id, activity, abs_q_value)
             return 'busy'
@@ -112,48 +92,6 @@ class QValueAllocator:
                     resource.reset()
 
     def predict(self, data):
-        results = {}
-        trace_ids = list(data.keys())
-        start_time = parse(get_earliest_trace(data)['start'])
-        time_range = get_time_range(data, start_time)
+        simulator = Simulator()
+        self. results = simulator.start(self, data)
 
-        for i in tqdm(range(0, time_range, 120)):
-            # Search for new traces at actual time
-            for j, trace_key in enumerate(trace_ids):
-                trace = data[trace_key]
-                results[trace_key] = []
-                if (parse(trace['start']) - start_time).total_seconds() <= i:
-                    self.enabled_traces[trace_key] = list(trace['events'])
-                    # print('trace: ' + trace_key + ' is started.')
-                    trace_ids.pop(j)
-
-            # All available traces which need to be allocated
-            for trace_id in self.enabled_traces:
-                trace_activities = self.enabled_traces[trace_id]
-                if trace_activities:
-                    if trace_activities[0]['status'] == 'free':
-                        trace_activities[0]['status'] = self.allocate_resource(trace_id, trace_activities[0])
-                        if trace_activities[0]['status'] == 'busy':
-                            trace_activities[0]['start'] = start_time + datetime.timedelta(seconds=i)
-                    elif trace_activities[0]['status'] == 'done':
-                        # remove activity from trace
-                        trace_activities[0]['end'] = start_time + datetime.timedelta(seconds=i)
-                        # trace_activities[0]['duration'] = trace_activities[0]['end'] - trace_activities[0]['start']
-                        results[trace_id].append(trace_activities[0])
-                        trace_activities.pop(0)
-                        if trace_activities:
-                            trace_activities[0]['status'] = self.allocate_resource(trace_id, trace_activities[0])
-                    else:  # busy
-                        continue
-            self.proceed_resources()
-            # self.resources, self.enabled_traces = proceed_resources(self.resources, self.enabled_traces)
-            # if len(self.enabled_traces) == len(trace_ids):
-            #     finished = True
-            #     for trace_id in self.enabled_traces:
-            #         trace = self.enabled_traces[trace_id]
-            #         if trace:
-            #             finished = False
-            #     if finished:
-            #         i = int((end_time_allocation - start_time).total_seconds())
-        for trace in self.enabled_traces:
-            print(trace, len(self.enabled_traces[trace]))

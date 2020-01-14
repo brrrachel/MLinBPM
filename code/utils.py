@@ -87,7 +87,7 @@ def get_time_range(data, start_time):
     end_time_allocation = get_trace_endtime(latest_trace)
     return int((end_time_allocation - start_time).total_seconds())
 
-def proceed_resources(self, resources, enabled_traces):
+def proceed_resources(enabled_traces, resources):
     for resource_id in resources:
         resource = resources[resource_id]
         if not resource.is_available:
