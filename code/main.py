@@ -1,8 +1,8 @@
-from dataLoader import load_data, preprocess
-from plotting import allocation_duration_plotting
-from allocator.qValue import QValueAllocator
+from dataLoader import load_data
+from plotting import allocation_duration_plotting, resource_workload_plotting
 from allocator.qValueWorkload import QValueAllocatorWorkload
 from allocator.greedy import GreedyAllocator
+import datetime
 
 from optparse import OptionParser
 import json
@@ -38,8 +38,12 @@ if __name__ == '__main__':
     results = allocator.predict(data, options.interval)
 
     # evaluate results
-    with open('results/' + options.threshold + allocator_name + '.json', 'w') as fp:
-        json.dump(results, fp)
+    def converter(o):
+        if isinstance(o, datetime.datetime) or isinstance(o, datetime.timedelta):
+            return o.__str__()
+    with open('results/' + str(options.threshold) + '_' + allocator_name + '.json', 'w') as fp:
+        json.dump(results, fp, default=converter)
     allocation_duration_plotting(results, allocator_name, options.threshold)
+    resource_workload_plotting(results, allocator_name, options.threshold)
 
     print('Finished')

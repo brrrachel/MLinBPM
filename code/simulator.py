@@ -7,6 +7,7 @@ from utils import get_activities, get_resources, get_earliest_trace, get_latest_
 class Simulator:
 
     allocator = None
+    trace_ids = None
     enabled_traces = {}
     results = {}
 
@@ -14,11 +15,20 @@ class Simulator:
         self.allocator = allocator
         return
 
+    def _search_for_new_traces(self, data, current_time):
+        for j, trace_key in enumerate(self.trace_ids):
+            if parse(data[trace_key]['start']) <= current_time:
+                self.results[trace_key] = []
+                self.enabled_traces[trace_key] = list(data[trace_key]['events'])
+                self.trace_ids.pop(j)
+
     def _remove_activity_from_trace(self, trace_id, current_time):
         self.enabled_traces[trace_id][0]['end'] = current_time
         self.enabled_traces[trace_id][0]['duration'] = current_time - self.enabled_traces[trace_id][0]['start']
         self.results[trace_id].append(self.enabled_traces[trace_id][0])
         self.enabled_traces[trace_id].pop(0)
+        if len(self.enabled_traces[trace_id]) == 0:
+            self.enabled_traces.pop(trace_id)
 
     def _allocate_activity(self, trace_id, current_time):
         new_status, ressource = self.allocator.allocate_resource(trace_id, self.enabled_traces[trace_id][0])
@@ -29,16 +39,8 @@ class Simulator:
             activity_start = self.enabled_traces[trace_id][0]['start'].__str__()
             print('Trace ' + trace_id + ': Activity started at ' + activity_start + '.')
 
-    def _handle_trace(self, trace_id, current_time):
-        if self.enabled_traces[trace_id]:
-            if self.enabled_traces[trace_id][0]['status'] == 'done':
-                self._remove_activity_from_trace(trace_id, current_time)
-        if self.enabled_traces[trace_id]:
-            if self.enabled_traces[trace_id][0]['status'] == 'free':
-                self._allocate_activity(trace_id, current_time)
-
     def start(self, data, interval):
-        trace_ids = list(data.keys())
+        self.trace_ids = list(data.keys())
         start_time = parse(get_earliest_trace(data)['start'])
         sim_interval = compute_timedelta(interval)
         print('start time', start_time)
@@ -48,29 +50,30 @@ class Simulator:
         for i in tqdm(range(0, time_range, interval)):
             current_time = start_time + compute_timedelta(i)
 
-            # Search for new traces at actual time
-            for j, trace_key in enumerate(trace_ids):
-                if (parse(data[trace_key]['start']) + compute_timedelta(i)) <= current_time:
-                    self.results[trace_key] = []
-                    self.enabled_traces[trace_key] = list(data[trace_key]['events'])
-                    trace_ids.pop(j)
+            self._search_for_new_traces(data, current_time)
 
             # All available traces which need to be allocated
-            for trace_id in self.enabled_traces:
-                self._handle_trace(trace_id, current_time)
+            for trace_id in list(self.enabled_traces.keys()):
+                if self.enabled_traces[trace_id][0]['status'] == 'done':
+                    self._remove_activity_from_trace(trace_id, current_time)
+                if trace_id in self.enabled_traces:
+                    if self.enabled_traces[trace_id][0]['status'] == 'free':
+                        self._allocate_activity(trace_id, current_time)
 
             self.allocator.resources, self.enabled_traces = proceed_resources(self.enabled_traces, self.allocator.resources)
 
         # when all remaining traces are allocated and only need to be finished for finishing the simulation
-        current_time = start_time + time_range + interval
-        while len(self.enabled_traces) > 0:
-            for trace_id in self.enabled_traces:
-                is_finnished = self.enabled_traces[trace_id][0]['resource'].proceed_activity()
+        current_time = start_time + compute_timedelta(time_range) + sim_interval
+        while len(self.enabled_traces) > 0 or len(self.trace_ids) > 0:
+            self._search_for_new_traces(data, current_time)
+            for trace_id in list(self.enabled_traces.keys()):
+                resource_id = self.enabled_traces[trace_id][0]['resource']
+                is_finnished = self.allocator.resources[resource_id].proceed_activity()
                 if is_finnished:
                     self._remove_activity_from_trace(trace_id, current_time)
-                    if self.enabled_traces[trace_id]:
+                    if trace_id in self.enabled_traces:
                         if self.enabled_traces[trace_id][0]['status'] == 'free':
                             self._allocate_activity(trace_id, current_time)
-            current_time += interval
+            current_time += sim_interval
 
         return self.results

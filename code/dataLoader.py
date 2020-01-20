@@ -5,10 +5,9 @@ from collections import Counter
 from plotting import occurrence_plotting, input_data_duration_plotting
 from dateutil.parser import parse
 from operator import getitem
-from tqdm import tqdm
 
 path = '../data/'
-files = ['BPIC15_1.xes']#, 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
+files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
 one_second = datetime.timedelta(hours=0, minutes=0, seconds=1)
 
 
@@ -95,18 +94,21 @@ def _safe_preprocessed_data(data, threshold):
     with open(_get_filename(threshold), 'w') as fp:
         json.dump(data, fp, default=converter)
 
+
 def load_data(threshold):
     data = {}
     preprocessed_data = _load_preprocessed_data(threshold)
     if preprocessed_data:
         data = preprocessed_data
+        input_data_duration_plotting(data, threshold)
     else:
         for file in files:
             data.update(_load_xes(file))
         data = preprocess(data, threshold)
         _safe_preprocessed_data(data, threshold)
         data = _load_preprocessed_data(threshold)
-        input_data_duration_plotting(data, threshold)
+        if data:
+            input_data_duration_plotting(data, threshold)
     return data
 
 
@@ -135,6 +137,8 @@ def preprocess(data, threshold):
             for event in data[trace]['events']:
                 if event['activity'] not in activities_to_delete:
                     prepocessed_data[trace]['events'].append(event.copy())
+            if len(prepocessed_data[trace]['events']) == 0:
+                prepocessed_data.pop(trace)
 
     occurrences_after = get_occurence(prepocessed_data)
     occurrence_plotting(occurrences_after, threshold)
