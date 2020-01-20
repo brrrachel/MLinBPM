@@ -17,6 +17,9 @@ class GreedyAllocator:
             self.resources[id] = Resource(id, skills)
         return self
 
-    def predict(self, data):
+    def allocate_resource(self, trace_id, activity):
+        return
+
+    def predict(self, data, interval):
 
         return

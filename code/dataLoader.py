@@ -2,7 +2,7 @@ import xml.etree.ElementTree as et
 import datetime
 import json
 from collections import Counter
-from plotting import occurrence_plotting, duration_plotting
+from plotting import occurrence_plotting, input_data_duration_plotting
 from dateutil.parser import parse
 from operator import getitem
 from tqdm import tqdm
@@ -106,7 +106,7 @@ def load_data(threshold):
         data = preprocess(data, threshold)
         _safe_preprocessed_data(data, threshold)
         data = _load_preprocessed_data(threshold)
-        duration_plotting(data, threshold)
+        input_data_duration_plotting(data, threshold)
     return data
 
 

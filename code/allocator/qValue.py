@@ -74,15 +74,14 @@ class QValueAllocator:
                 if self.q[activity['activity']][resource.resource_id] != 0:
                     if self.q[activity['activity']][resource.resource_id] > self.q[activity['activity']][
                         best_resource.get_resource_id()]: best_resource = resource
-            print("Resource " + str(best_resource.resource_id) + " allocated for activity " + activity['activity'] + " of trace " + trace_id + " and has now a workload of " + str(best_resource.workload + 1) + ".")
+            print("Resource " + str(best_resource.resource_id) + " allocated for activity '" + activity['activity'] + "' of trace " + trace_id + " and has now a workload of " + str(best_resource.workload + 1) + ".")
             abs_q_value = self.q[activity['activity']][best_resource.resource_id]
             activity['duration'] = abs_q_value
             best_resource.allocate_for_activity(trace_id, activity)
-            return 'busy'
+            return 'busy', best_resource.resource_id
         else:
-            return 'free'
+            return 'free', None
 
-    def predict(self, data):
-        simulator = Simulator()
-        self. results = simulator.start(self, data)
+    def predict(self, data, interval):
+        return Simulator(self).start(data, interval)
 

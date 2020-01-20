@@ -43,7 +43,7 @@ class Resource:
         self.actual_duration += 1
         if self.planned_duration <= 0:
             self.workload -= 1
-            print("Resource " + str(self.resource_id) + " finished activity " + self.activity['activity'] + " and has now a workload of " + str(self.workload) + ".")
+            print("Resource " + str(self.resource_id) + " finished activity '" + self.activity['activity'] + "' and has a workload of " + str(self.workload) + " now.")
             return True
         else:
             return False

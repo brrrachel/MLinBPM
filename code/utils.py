@@ -53,7 +53,7 @@ def get_latest_trace(data):
             end = get_trace_endtime(trace)
         if end > latest_end:
             latest_trace = trace
-    print("reguläres Ende des Logs: " + str(end))
+    print("regular end of the log: " + str(end))
     return latest_trace
 
 
@@ -84,7 +84,6 @@ def get_resources(data):
 
 def get_time_range(data, start_time):
     latest_trace = get_latest_trace(data)
-    print(get_trace_endtime(latest_trace))
     end_time_allocation = get_trace_endtime(latest_trace)
     return int((end_time_allocation - start_time).total_seconds())
 
@@ -92,12 +91,10 @@ def get_time_range(data, start_time):
 def proceed_resources(enabled_traces, resources):
     for resource_id in resources:
         resource = resources[resource_id]
-        if resource.workload > 0:
+        if resources[resource_id].workload > 0:
             finished = resource.proceed_activity()
             if finished:
-                trace_id = resource.trace_id
-                print(trace_id)
-                enabled_traces[trace_id][0]['status'] = 'done'
+                enabled_traces[resource.trace_id][0]['status'] = 'done'
                 resource.set_as_free()
     return resources, enabled_traces
 
