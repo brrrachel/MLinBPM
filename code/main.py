@@ -15,10 +15,12 @@ if __name__ == '__main__':
     parser.add_option("-g", dest="greedy", help="Run Greedy Allocator", action="store_true", default=True)
     parser.add_option("-q", dest="q_value", help="Run QValue Allocator", action="store_true", default=False)
     parser.add_option("-w", dest="q_value_workload", help="Set Workload of Q_Value Allocator", action="store", default=1, type="int")
+    parser.add_option("-s", "--start", dest="start", help="Set Start date to limit data [YYYY/MM/DD], default = 2007/07/01", action="store", default="2010/07/01", type="string")
+    parser.add_option("-e", "--end", dest="end", help="Set End date to limit data [YYYY/MM/DD], default = 2015/02/15", action="store", default="2015/02/15", type="string")
     (options, args) = parser.parse_args()
 
     print('Selected Threshold: ', options.threshold)
-    data = load_data(options.threshold)
+    data = load_data(options.threshold, options.start, options.end)
     print('Data Loaded')
 
     allocator = None
