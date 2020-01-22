@@ -108,4 +108,3 @@ def compute_timedelta(seconds):
     rest_seconds = rest_seconds - (num_minutes * 60)
 
     return datetime.timedelta(days=num_days, hours=num_hours, minutes=num_minutes, seconds=rest_seconds)
-

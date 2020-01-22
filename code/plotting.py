@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-plt.rcParams["font.family"] = "Times New Roman"
 import datetime
 from dateutil.parser import parse
+from tqdm import tqdm
+
+plt.rcParams["font.family"] = "Times New Roman"
 
 
 def _get_start_duration(activity):
@@ -30,6 +32,12 @@ def _get_start_duration(activity):
     return start, duration
 
 
+def legend_without_duplicate_labels(ax):
+    handles, labels = ax.get_legend_handles_labels()
+    unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
+    ax.legend(*zip(*unique), loc="best")
+
+
 def occurrence_plotting(occurrences, threshold):
     values = sorted(list(occurrences.values()))
     plt.plot(range(len(values)), values)
@@ -43,8 +51,9 @@ def input_data_duration_plotting(data, threshold):
     filename = 'plots/inputDataDuration/' + str(threshold).split('.')[1] + '.pdf'
     fig, ax = plt.subplots()
 
+    print("Plotting duration of traces in log")
     index = 0
-    for trace in data.keys():
+    for trace in tqdm(data.keys()):
         for event in data[trace]['events']:
             start, duration = _get_start_duration(event)
             ax.hlines(y=trace, xmin=start, xmax=(start + duration))
@@ -62,23 +71,19 @@ def allocation_duration_plotting(results, allocator, threshold):
 
     resources = set()
     for trace in results.keys():
-        for actitivty in results[trace]:
-            resources.add(actitivty['resource'])
+        for activity in results[trace]:
+            resources.add(activity['resource'])
     resources = list(resources)
 
     cmap = plt.get_cmap('jet')
     colors = [cmap(i) for i in np.linspace(0, 1, len(list(resources)))]
 
-    for trace in results.keys():
-        for actitivty in results[trace]:
-            start, duration = _get_start_duration(actitivty)
-            color_index = resources.index(actitivty['resource'])
-            ax.hlines(y=trace, xmin=start, xmax=(start + duration), color=colors[color_index], label=actitivty['resource'])
-
-    def legend_without_duplicate_labels(ax):
-        handles, labels = ax.get_legend_handles_labels()
-        unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
-        ax.legend(*zip(*unique), loc="best")
+    print("plotting duration with new allocation")
+    for trace in tqdm(results.keys()):
+        for activity in results[trace]:
+            start, duration = _get_start_duration(activity)
+            color_index = resources.index(activity['resource'])
+            ax.hlines(y=trace, xmin=start, xmax=(start + duration), color=colors[color_index], label=activity['resource'])
 
     legend_without_duplicate_labels(ax)
     plt.xlabel('Time')
@@ -96,27 +101,23 @@ def resource_workload_plotting(results, allocator, threshold):
     activities = set()
 
     for trace in results.keys():
-        for actitivty in results[trace]:
-            resources.add(actitivty['resource'])
-            activities.add(actitivty['activity'])
+        for activity in results[trace]:
+            resources.add(activity['resource'])
+            activities.add(activity['activity'])
     resources = list(resources)
     activities = list(activities)
 
     cmap = plt.get_cmap('jet')
     colors = [cmap(i) for i in np.linspace(0, 1, len(list(activities)))]
 
-    for resource in resources:
+    print("plotting workload of resources")
+    for resource in tqdm(resources):
         for trace in results.keys():
-            for actitivty in results[trace]:
-                if actitivty['resource'] == resource:
-                    start, duration = _get_start_duration(actitivty)
-                    color_index = activities.index(actitivty['activity'])
-                    ax.hlines(y=resource, xmin=start, xmax=(start + duration), color=colors[color_index], label=actitivty['activity'])
-
-    def legend_without_duplicate_labels(ax):
-        handles, labels = ax.get_legend_handles_labels()
-        unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
-        ax.legend(*zip(*unique), loc="best")
+            for activity in results[trace]:
+                if activity['resource'] == resource:
+                    start, duration = _get_start_duration(activity)
+                    color_index = activities.index(activity['activity'])
+                    ax.hlines(y=resource, xmin=start, xmax=(start + duration), color=colors[color_index], label=activity['activity'])
 
     legend_without_duplicate_labels(ax)
     plt.xlabel('Time')

@@ -3,8 +3,6 @@ from pytimeparse.timeparse import timeparse
 from utils import get_activities, get_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, proceed_resources, get_time_range
 from resource import Resource
 from simulator import Simulator
-from dateutil.parser import parse
-from tqdm import tqdm
 
 
 class QValueAllocator:
@@ -72,8 +70,8 @@ class QValueAllocator:
             for resource_id in available_resources:
                 resource = self.resources[resource_id]
                 if self.q[activity['activity']][resource.resource_id] != 0:
-                    if self.q[activity['activity']][resource.resource_id] > self.q[activity['activity']][
-                        best_resource.get_resource_id()]: best_resource = resource
+                    if self.q[activity['activity']][resource.resource_id] > self.q[activity['activity']][best_resource.get_resource_id()]:
+                        best_resource = resource
             print("Resource " + str(best_resource.resource_id) + " allocated for activity '" + activity['activity'] + "' of trace " + trace_id + " and has now a workload of " + str(best_resource.workload + 1) + ".")
             abs_q_value = self.q[activity['activity']][best_resource.resource_id]
             activity['duration'] = abs_q_value
@@ -84,4 +82,3 @@ class QValueAllocator:
 
     def predict(self, data, interval):
         return Simulator(self).start(data, interval)
-
