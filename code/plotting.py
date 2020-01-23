@@ -3,6 +3,7 @@ import numpy as np
 import datetime
 from dateutil.parser import parse
 from tqdm import tqdm
+from utils import parse_timedelta
 
 plt.rcParams["font.family"] = "Times New Roman"
 
@@ -16,17 +17,7 @@ def _get_start_duration(activity):
         start = activity['start']
 
     if type(activity['duration']) is str:
-        days = None
-        timestamp = None
-        if ' days, ' in activity['duration']:
-            days, timestamp = activity['duration'].split(' days, ')
-        elif ' day, ' in activity['duration']:
-            days, timestamp = activity['duration'].split(' day, ')
-        else:
-            days = 0
-            timestamp = activity['duration']
-        t = datetime.datetime.strptime(timestamp, "%H:%M:%S") + datetime.timedelta(days=int(days))
-        duration = datetime.timedelta(days=t.day, hours=t.hour, minutes=t.minute, seconds=t.second)
+        duration = parse_timedelta(activity['duration'])
     else:
         duration = activity['duration']
     return start, duration

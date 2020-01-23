@@ -39,6 +39,15 @@ def get_trace_endtime(trace):
     return start + duration
 
 
+def get_earliest_trace(data):
+    earliest_trace = data[next(iter(data.keys()))]
+    for trace_id in data.keys():
+        trace = data[trace_id]
+        if parse(trace['start']) < parse(earliest_trace['start']):
+            earliest_trace = trace
+    return earliest_trace
+
+
 def get_latest_trace(data):
     latest_trace = data[next(iter(data.keys()))]
     if latest_trace['end'] != '':
@@ -57,29 +66,36 @@ def get_latest_trace(data):
     return latest_trace
 
 
-def get_earliest_trace(data):
-    earliest_trace = data[next(iter(data.keys()))]
-    for trace_id in data.keys():
-        trace = data[trace_id]
-        if parse(trace['start']) < parse(earliest_trace['start']):
-            earliest_trace = trace
-    return earliest_trace
-
-
 def get_activities_for_resource(data, resource_id):
-    activities = set()
+    activities = {}
     for trace in data.keys():
         for event in data[trace]['events']:
             if event['resource'] == resource_id:
-                activities.add(event['activity'])
+                activity = event['activity']
+                if activity in activities.keys():
+                    # update duration
+                    activities[activity] = (activities[activity] + parse_timedelta(event['duration']).total_seconds()) / 2
+                else:
+                    # create entry for this activity
+                    activities[activity] = parse_timedelta(event['duration']).total_seconds()
+
     return activities
 
 
-def get_resources(data):
+def get_resource_ids(data):
     resources = []
     for trace in data.keys():
         resources += [event['resource'] for event in data[trace]['events']]
     return set(resources)
+
+
+def get_available_resources(resources, workload):
+    available_resources_id = []
+    for resource_id in resources.keys():
+        resource = resources[resource_id]
+        if resource.workload < workload:
+            available_resources_id.append(resource_id)
+    return available_resources_id
 
 
 def get_time_range(data, start_time):
@@ -88,11 +104,11 @@ def get_time_range(data, start_time):
     return int((end_time_allocation - start_time).total_seconds())
 
 
-def proceed_resources(enabled_traces, resources):
+def proceed_resources(time, enabled_traces, resources):
     for resource_id in resources:
         resource = resources[resource_id]
         if resources[resource_id].workload > 0:
-            finished = resource.proceed_activity()
+            finished = resource.proceed_activity(time)
             if finished:
                 enabled_traces[resource.trace_id][0]['status'] = 'done'
                 resource.set_as_free()
@@ -106,5 +122,18 @@ def compute_timedelta(seconds):
     rest_seconds = rest_seconds - (num_hours * 3600)
     num_minutes = math.floor(rest_seconds / 60)
     rest_seconds = rest_seconds - (num_minutes * 60)
-
     return datetime.timedelta(days=num_days, hours=num_hours, minutes=num_minutes, seconds=rest_seconds)
+
+
+def parse_timedelta(text):
+    days = None
+    timestamp = None
+    if ' days, ' in text:
+        days, timestamp = text.split(' days, ')
+    elif ' day, ' in text:
+        days, timestamp = text.split(' day, ')
+    else:
+        days = 0
+        timestamp = text
+    t = datetime.datetime.strptime(timestamp, "%H:%M:%S") + datetime.timedelta(days=int(days))
+    return datetime.timedelta(days=t.day, hours=t.hour, minutes=t.minute, seconds=t.second)

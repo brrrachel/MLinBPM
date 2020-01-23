@@ -2,6 +2,7 @@ import random
 
 
 class Resource:
+
     resource_id = None
     workload = 0
     activity_id = {}
@@ -27,7 +28,7 @@ class Resource:
         self.planned_duration = 0
         self.actual_duration = 0
 
-    def proceed_activity(self):
+    def proceed_activity(self, time):
         if self.activity is None:
             self.activity = self.queue[0][0]
             self.trace_id = self.queue[0][1]
@@ -41,7 +42,7 @@ class Resource:
         self.actual_duration += 1
         if self.planned_duration <= 0:
             self.workload -= 1
-            print("Resource " + str(self.resource_id) + " finished activity '" + self.activity['activity'] + "' and has a workload of " + str(self.workload) + " now.")
+            print(time.__str__() + " : Resource " + str(self.resource_id) + " finished activity '" + self.activity['activity'] + "' and has a workload of " + str(self.workload) + " now.")
             return True
         else:
             return False

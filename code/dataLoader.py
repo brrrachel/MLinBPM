@@ -18,8 +18,7 @@ def _load_xes(file):
     tree = et.parse(path + file)
     data = tree.getroot()
 
-    print('Collecting traces')
-    for trace in tqdm(data.findall('{http://www.xes-standard.org/}trace')):
+    for trace in data.findall('{http://www.xes-standard.org/}trace'):
 
         trace_id = ''
         start = ''
@@ -97,23 +96,6 @@ def _safe_preprocessed_data(data, threshold):
         json.dump(data, fp, default=converter)
 
 
-def load_data(threshold):
-    data = {}
-    preprocessed_data = _load_preprocessed_data(threshold)
-    if preprocessed_data:
-        data = preprocessed_data
-        input_data_duration_plotting(data, threshold)
-    else:
-        for file in files:
-            data.update(_load_xes(file))
-        data = preprocess(data, threshold)
-        _safe_preprocessed_data(data, threshold)
-        data = _load_preprocessed_data(threshold)
-        if data:
-            input_data_duration_plotting(data, threshold)
-    return data
-
-
 def preprocess(data, threshold):
     print('Start preprocess')
     preprocessed_data = {}
@@ -132,7 +114,7 @@ def preprocess(data, threshold):
         if occurrences_before[t] < min_occurrence:
             activities_to_delete.append(t)
 
-    for trace in tqdm(data.keys()):
+    for trace in data.keys():
         if datetime.datetime(year=2010, month=7, day=1) < data[trace]['start'] < datetime.datetime(year=2015, month=2, day=15):
             preprocessed_data[trace] = data[trace].copy()
             preprocessed_data[trace]['events'] = []
@@ -153,6 +135,45 @@ def preprocess(data, threshold):
         exit(0)
 
     return preprocessed_data
+
+def _limit_data(data, start, end):
+    # limit data, where start of the trace and end of the last event in trace are between the defined start and end time
+    print('Limiting Data to ' + start.__str__() + ' and ' + end.__str__())
+    limited_data = {}
+    for trace in data.keys():
+        trace_start = parse(data[trace]['start'])
+        trace_end = parse(data[trace]['events'][-1]['end'])
+        if (start <= trace_start) and (trace_end < end):
+            limited_data[trace] = data[trace]
+    if len(limited_data.keys()) == 0:
+        print('No data available.')
+        exit(0)
+    return limited_data
+
+
+def load_data(threshold, start, end):
+    parsed_start = datetime.datetime.strptime(start, "%Y/%m/%d")
+    parsed_end = datetime.datetime.strptime(end, "%Y/%m/%d")
+
+    data = {}
+    preprocessed_data = _load_preprocessed_data(threshold)
+    if preprocessed_data:
+        data = preprocessed_data
+    else:
+        print('Data loading ...')
+        for file in tqdm(files):
+            data.update(_load_xes(file))
+        data = preprocess(data, threshold)
+        _safe_preprocessed_data(data, threshold)
+        data = _load_preprocessed_data(threshold)
+
+    if data:
+        #input_data_duration_plotting(data, threshold)
+        data = _limit_data(data, parsed_start, parsed_end)
+        return data
+    else:
+        print('No data available.')
+        exit(0)
 
 def _limit_data(data, start, end):
     # limit data, where start of the trace and end of the last event in trace are between the defined start and end time

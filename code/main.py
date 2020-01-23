@@ -1,7 +1,8 @@
 from dataLoader import load_data
 from plotting import allocation_duration_plotting, resource_workload_plotting
-from allocator.qValueWorkload import QValueAllocatorWorkload
+from simulator import Simulator
 from allocator.greedy import GreedyAllocator
+from allocator.qValue import QValueAllocator
 import datetime
 
 from optparse import OptionParser
@@ -27,7 +28,7 @@ if __name__ == '__main__':
     allocator_name = None
     if options.q_value:
         print('Using QValueAllocator with workload ' + str(options.q_value_workload))
-        allocator = QValueAllocatorWorkload(options.q_value_workload)
+        allocator = QValueAllocator(options.q_value_workload)
         allocator_name = 'QValueAllocator_w' + str(options.q_value_workload)
     elif options.greedy:
         print('Using GreedyAllocator')
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     print('Train Model')
     allocator.fit(data)
     print('Allocate Cases')
-    results = allocator.predict(data, options.interval)
+    results = Simulator(options.interval, options.end).start(allocator, data)
 
     # evaluate results
     def converter(o):
