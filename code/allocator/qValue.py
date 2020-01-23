@@ -60,10 +60,14 @@ class QValueAllocator:
                 if self.q[activity['activity']][resource.resource_id] != 0:
                     if self.q[activity['activity']][resource.resource_id] > self.q[activity['activity']][best_resource.get_resource_id()]:
                         best_resource = resource
-            abs_q_value = self.q[activity['activity']][best_resource.resource_id]
-            activity['duration'] = abs_q_value
-            best_resource.allocate_for_activity(trace_id, activity)
-            return 'busy', best_resource.resource_id
+
+            if self.q[activity['activity']][best_resource.resource_id] == 0:
+                return 'free', None
+            else:
+                abs_q_value = self.q[activity['activity']][best_resource.resource_id]
+                activity['duration'] = abs_q_value
+                best_resource.allocate_for_activity(trace_id, activity)
+                return 'busy', best_resource.resource_id
         else:
             return 'free', None
 
