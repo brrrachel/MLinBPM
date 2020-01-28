@@ -46,7 +46,7 @@ class Simulator:
             self.enabled_traces[trace_id][0]['start'] = self.current_time
             activity = self.enabled_traces[trace_id][0]['activity']
             workload = str(self.allocator.resources[resource_id].workload)
-        print(self.current_time.__str__(), ": Resource " + resource_id + " allocated for activity '" + activity + "' of trace " + trace_id + " and has now a workload of " + workload + ".")
+            print(self.current_time.__str__(), ": Resource " + resource_id + " allocated for activity '" + activity + "' of trace " + trace_id + " and has now a workload of " + workload + ".")
 
     def _update_progress_bar(self):
         self.progressbar_widgets[1] = self.current_time.__str__()

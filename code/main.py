@@ -12,6 +12,7 @@ if __name__ == '__main__':
 
     parser = OptionParser()
     parser.add_option("-t", dest="threshold", help="Threshold for min occurence of an activity in the whole dataset", default=0.0017, type="float", action="store")
+    parser.add_option("-u", dest="threshold_traces", help="Threshold for min occurence of an activity in traces", default=0.005, type="float", action="store")
     parser.add_option("-i", dest="interval", help="Interval steps for simulation [Seconds]", default=3600, type="int", action="store")
     parser.add_option("-g", dest="greedy", help="Run Greedy Allocator", action="store_true", default=True)
     parser.add_option("-q", dest="q_value", help="Run QValue Allocator", action="store_true", default=False)
@@ -21,7 +22,7 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     print('Selected Threshold: ', options.threshold)
-    data = load_data(options.threshold, options.start, options.end)
+    data = load_data(options.threshold, options.threshold_traces, options.start, options.end)
     print('Data Loaded')
 
     allocator = None

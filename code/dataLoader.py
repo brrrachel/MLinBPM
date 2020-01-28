@@ -75,60 +75,77 @@ def _load_xes(file):
     return log
 
 
-def _get_filename(threshold):
-    return path + 'preprocessed/preprocessed_' + str(threshold).split('.')[1] + '.json'
+def _get_filename(threshold, threshold_occurrence_in_traces):
+    return path + 'preprocessed/preprocessed_' + str(threshold).split('.')[1] + str(threshold_occurrence_in_traces).split('.')[1] + '.json'
 
 
-def _load_preprocessed_data(threshold):
+def _load_preprocessed_data(threshold, threshold_occurrence_in_traces):
     try:
-        with open(_get_filename(threshold), 'r') as fp:
+        with open(_get_filename(threshold, threshold_occurrence_in_traces), 'r') as fp:
             return json.load(fp)
     except IOError:
         return False
 
 
-def _safe_preprocessed_data(data, threshold):
+def _safe_preprocessed_data(data, threshold, threshold_occurrence_in_traces):
     def converter(o):
         if isinstance(o, datetime.datetime) or isinstance(o, datetime.timedelta):
             return o.__str__()
     data = dict(sorted(data.items(), key=lambda x: getitem(x[1], 'start')))
-    with open(_get_filename(threshold), 'w') as fp:
+    with open(_get_filename(threshold, threshold_occurrence_in_traces), 'w') as fp:
         json.dump(data, fp, default=converter)
 
 
-def preprocess(data, threshold):
+def get_occurrence(d):
+    tasks = []
+    occurrence_in_traces = {}
+    for trace in d.keys():
+        tasks_of_trace = []
+        for event in d[trace]['events']:
+            tasks_of_trace += [event['activity']]
+            tasks += [event['activity']]
+        unique_task_of_trace = set(tasks_of_trace)
+        for task in unique_task_of_trace:
+            if task not in occurrence_in_traces.keys():
+                occurrence_in_traces[task] = 0
+            occurrence_in_traces[task] += 1
+    return Counter(tasks), occurrence_in_traces
+
+
+def preprocess(data, total_num_threshold, trace_num_threshold):
     print('Start preprocess')
     preprocessed_data = {}
 
-    def get_occurrence(d):
-        tasks = []
-        for trace in d.keys():
-            tasks += [event['activity'] for event in d[trace]['events']]
-        return Counter(tasks)
-
-    occurrences_before = get_occurrence(data)
-    min_occurrence = sum(list(occurrences_before.values())) * threshold
+    occurrences_before, occurrences_in_traces = get_occurrence(data)
+    min_occurrence_total = sum(list(occurrences_before.values())) * total_num_threshold
+    min_occurrence_in_traces = sum(list(occurrences_before.values())) * trace_num_threshold
     activities_to_delete = []
 
     for t in occurrences_before.keys():
-        if occurrences_before[t] < min_occurrence:
+        if occurrences_before[t] < min_occurrence_total:
             activities_to_delete.append(t)
+
+    for t in occurrences_in_traces.keys():
+        if occurrences_in_traces[t] < min_occurrence_in_traces:
+            activities_to_delete.append(t)
+
+    activities_to_delete_unique = set(activities_to_delete)
 
     for trace in data.keys():
         if datetime.datetime(year=2010, month=7, day=1) < data[trace]['start'] < datetime.datetime(year=2015, month=2, day=15):
             preprocessed_data[trace] = data[trace].copy()
             preprocessed_data[trace]['events'] = []
             for event in data[trace]['events']:
-                if event['activity'] not in activities_to_delete:
+                if event['activity'] not in activities_to_delete_unique:
                     preprocessed_data[trace]['events'].append(event.copy())
             if len(preprocessed_data[trace]['events']) == 0:
                 preprocessed_data.pop(trace)
 
-    occurrences_after = get_occurrence(preprocessed_data)
-    occurrence_plotting(occurrences_after, threshold)
+    occurrences_after, occurrences_in_traces_after = get_occurrence(preprocessed_data)
+    occurrence_plotting(occurrences_after, total_num_threshold, trace_num_threshold)
 
-    print('Removed ' + str(1 - len(list(occurrences_after.values())) / len(list(occurrences_before.values()))) + ' % of the unique activities')
-    print('Removed ' + str(1 - sum(list(occurrences_after.values())) / sum(list(occurrences_before.values()))) + ' % of all activities')
+    print('Removed ' + str((1 - len(list(occurrences_after.values())) / len(list(occurrences_before.values()))) * 100) + ' % of the unique activities')
+    print('Removed ' + str((1 - sum(list(occurrences_after.values())) / sum(list(occurrences_before.values()))) * 100) + ' % of all activities')
 
     if len(list(occurrences_after.values())) == 0:
         print('Threshold is too high, no activities left.')
@@ -136,44 +153,6 @@ def preprocess(data, threshold):
 
     return preprocessed_data
 
-def _limit_data(data, start, end):
-    # limit data, where start of the trace and end of the last event in trace are between the defined start and end time
-    print('Limiting Data to ' + start.__str__() + ' and ' + end.__str__())
-    limited_data = {}
-    for trace in data.keys():
-        trace_start = parse(data[trace]['start'])
-        trace_end = parse(data[trace]['events'][-1]['end'])
-        if (start <= trace_start) and (trace_end < end):
-            limited_data[trace] = data[trace]
-    if len(limited_data.keys()) == 0:
-        print('No data available.')
-        exit(0)
-    return limited_data
-
-
-def load_data(threshold, start, end):
-    parsed_start = datetime.datetime.strptime(start, "%Y/%m/%d")
-    parsed_end = datetime.datetime.strptime(end, "%Y/%m/%d")
-
-    data = {}
-    preprocessed_data = _load_preprocessed_data(threshold)
-    if preprocessed_data:
-        data = preprocessed_data
-    else:
-        print('Data loading ...')
-        for file in tqdm(files):
-            data.update(_load_xes(file))
-        data = preprocess(data, threshold)
-        _safe_preprocessed_data(data, threshold)
-        data = _load_preprocessed_data(threshold)
-
-    if data:
-        #input_data_duration_plotting(data, threshold)
-        data = _limit_data(data, parsed_start, parsed_end)
-        return data
-    else:
-        print('No data available.')
-        exit(0)
 
 def _limit_data(data, start, end):
     # limit data, where start of the trace and end of the last event in trace are between the defined start and end time
@@ -189,24 +168,25 @@ def _limit_data(data, start, end):
         exit(0)
     return limited_data
 
-def load_data(threshold, start, end):
+
+def load_data(threshold_total, threshold_occurrence_in_traces, start, end):
     parsed_start = datetime.datetime.strptime(start, "%Y/%m/%d")
     parsed_end = datetime.datetime.strptime(end, "%Y/%m/%d")
 
     data = {}
-    preprocessed_data = _load_preprocessed_data(threshold)
+    preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
     if preprocessed_data:
         data = preprocessed_data
     else:
         print('Data loading ...')
         for file in files:
             data.update(_load_xes(file))
-        data = preprocess(data, threshold)
-        _safe_preprocessed_data(data, threshold)
-        data = _load_preprocessed_data(threshold)
+        data = preprocess(data, threshold_total, threshold_occurrence_in_traces)
+        _safe_preprocessed_data(data, threshold_total, threshold_occurrence_in_traces)
+        data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
 
     if data:
-        #input_data_duration_plotting(data, threshold)
+        # input_data_duration_plotting(data, threshold)
         data = _limit_data(data, parsed_start, parsed_end)
         return data
     else:

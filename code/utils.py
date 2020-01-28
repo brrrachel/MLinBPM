@@ -105,13 +105,14 @@ def get_time_range(data, start_time):
 
 
 def proceed_resources(time, enabled_traces, resources):
-    for resource_id in resources:
-        resource = resources[resource_id]
-        if resources[resource_id].workload > 0:
-            finished = resource.proceed_activity(time)
-            if finished:
-                enabled_traces[resource.trace_id][0]['status'] = 'done'
-                resource.set_as_free()
+    if 9 <= time.hour < 17:
+        for resource_id in resources:
+            resource = resources[resource_id]
+            if resources[resource_id].workload > 0:
+                finished = resource.proceed_activity(time)
+                if finished:
+                    enabled_traces[resource.trace_id][0]['status'] = 'done'
+                    resource.set_as_free()
     return resources, enabled_traces
 
 

@@ -29,13 +29,13 @@ def legend_without_duplicate_labels(ax):
     ax.legend(*zip(*unique), loc="best")
 
 
-def occurrence_plotting(occurrences, threshold):
+def occurrence_plotting(occurrences, threshold, trace_num_threshold):
     values = sorted(list(occurrences.values()))
     plt.plot(range(len(values)), values)
     plt.xlabel('Activities')
     plt.ylabel('Occurences')
     plt.grid(True)
-    plt.savefig('plots/occurences_' + str(threshold).split('.')[1] + '.pdf')
+    plt.savefig('plots/occurences_' + str(threshold).split('.')[1] + str(trace_num_threshold).split('.')[1] + '.pdf')
 
 
 def input_data_duration_plotting(data, threshold):
@@ -84,8 +84,8 @@ def allocation_duration_plotting(results, allocator, threshold):
     plt.savefig(filename)
 
 
-def resource_workload_plotting(results, allocator, threshold):
-    filename = 'plots/resources/' + allocator + '_' + str(threshold).split('.')[1] + '.pdf'
+def resource_workload_plotting(results, allocator, threshold, trace_num_threshold):
+    filename = 'plots/resources/' + allocator + '_' + str(threshold).split('.')[1] + str(trace_num_threshold).split('.')[1] + '.pdf'
     fig, ax = plt.subplots()
 
     resources = set()
