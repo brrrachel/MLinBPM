@@ -52,7 +52,7 @@ class Simulator:
         self.progressbar_widgets[1] = self.current_time.__str__()
         amount_of_finished = 0
         for trace_key in self.results.keys():
-            if not trace_key in self.enabled_traces:
+            if trace_key not in self.enabled_traces:
                 amount_of_finished += 1
         self.bar.update(amount_of_finished)
         self.current_time += self.interval

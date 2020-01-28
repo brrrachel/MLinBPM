@@ -13,11 +13,13 @@ class Resource:
     actual_duration = 0
     skills = None
     queue = []
+    salary = None
 
-    def __init__(self, allocator, resource_id, skills):
+    def __init__(self, allocator, resource_id, skills, salary):
         self.resource_id = resource_id
         self.skills = skills
         self.allocator = allocator
+        self.salary = salary
 
     def get_resource_id(self):
         return str(self.resource_id)

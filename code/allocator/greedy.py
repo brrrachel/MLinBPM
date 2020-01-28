@@ -14,7 +14,7 @@ class GreedyAllocator:
         resources_ids = get_resource_ids(data)
         for id in resources_ids:
             skills = get_activities_for_resource(data, id)
-            self.resources[id] = Resource(self, id, skills)
+            self.resources[id] = Resource(self, id, skills, None)
         return self
 
     def allocate_resource(self, trace_id, activity):

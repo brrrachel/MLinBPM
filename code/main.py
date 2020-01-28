@@ -3,6 +3,7 @@ from plotting import allocation_duration_plotting, resource_workload_plotting
 from simulator import Simulator
 from allocator.greedy import GreedyAllocator
 from allocator.qValue import QValueAllocator
+from allocator.qValueMultiDimension import QValueAllocatorMultiDimension
 import datetime
 
 from optparse import OptionParser
@@ -14,8 +15,9 @@ if __name__ == '__main__':
     parser.add_option("-t", dest="threshold", help="Threshold for min occurence of an activity in the whole dataset", default=0.0017, type="float", action="store")
     parser.add_option("-u", dest="threshold_traces", help="Threshold for min occurence of an activity in traces", default=0.005, type="float", action="store")
     parser.add_option("-i", dest="interval", help="Interval steps for simulation [Seconds]", default=3600, type="int", action="store")
-    parser.add_option("-g", dest="greedy", help="Run Greedy Allocator", action="store_true", default=True)
+    parser.add_option("-g", dest="greedy", help="Run Greedy Allocator", action="store_true", default=False)
     parser.add_option("-q", dest="q_value", help="Run QValue Allocator", action="store_true", default=False)
+    parser.add_option("-m", dest="q_value_multi", help="Run QValue Allocator with additional salary dimension", action="store_true", default=False)
     parser.add_option("-w", dest="q_value_workload", help="Set Workload of Q_Value Allocator", action="store", default=1, type="int")
     parser.add_option("-s", "--start", dest="start", help="Set Start date to limit data [YYYY/MM/DD], default = 2007/07/01", action="store", default="2010/07/01", type="string")
     parser.add_option("-e", "--end", dest="end", help="Set End date to limit data [YYYY/MM/DD], default = 2015/02/15", action="store", default="2015/02/15", type="string")
@@ -27,6 +29,8 @@ if __name__ == '__main__':
 
     allocator = None
     allocator_name = None
+    if options.q_value and options.q_value_multi or options.q_value and options.greedy or options.greedy and options.q_value_multi or options.q_value and options.q_value_multi and options.greedy:
+        print('You chose to many allocators. Please choose only one of the following: -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension')
     if options.q_value:
         print('Using QValueAllocator with workload ' + str(options.q_value_workload))
         allocator = QValueAllocator(options.q_value_workload)
@@ -35,7 +39,14 @@ if __name__ == '__main__':
         print('Using GreedyAllocator')
         allocator = GreedyAllocator()
         allocator_name = 'GreedyAllocator'
+    elif options.q_value_multi:
+        print('Using QValueMultiDimensionAllocator')
+        allocator = QValueAllocatorMultiDimension(options.q_value_workload)
+        allocator_name = 'QValueMultiDimensionAllocator'
 
+    if allocator is None:
+        print("You didn't choose a allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")
+        exit(0)
     print('Train Model')
     allocator.fit(data)
     print('Allocate Cases')
