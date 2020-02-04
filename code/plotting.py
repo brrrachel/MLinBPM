@@ -1,3 +1,4 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import datetime
@@ -115,3 +116,21 @@ def resource_workload_plotting(results, allocator, threshold, trace_num_threshol
     plt.ylabel('Resources')
     fig.autofmt_xdate()
     plt.savefig(filename)
+
+
+def resource_distribution(table):
+    activities = []
+    resources = []
+    for key in sorted(table.keys()):
+        activities.append(key)
+        resources_with_skill = [r[0] for r in table[key].items() if r[1] > 0]
+        resources.append(len(resources_with_skill))
+
+    x_pos = [i for i, _ in enumerate(activities)]
+    plt.bar(x_pos, resources, color='green')
+
+    plt.xlabel("Activities")
+    plt.xticks(rotation=90)
+    plt.ylabel("Number of Resources which have already executed this activity")
+
+    plt.xticks(x_pos, activities)

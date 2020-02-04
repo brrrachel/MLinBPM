@@ -24,11 +24,11 @@ class Simulator:
         self.end = datetime.datetime.strptime(end, "%Y/%m/%d").__str__()
 
     def _search_for_new_traces(self, data, current_time):
-        for j, trace_key in enumerate(self.trace_ids):
+        for trace_key in self.trace_ids:
             if parse(data[trace_key]['start']) <= current_time:
                 self.results[trace_key] = []
                 self.enabled_traces[trace_key] = list(data[trace_key]['events'])
-                self.trace_ids.pop(j)
+                self.trace_ids.remove(trace_key)
 
     def _remove_activity_from_trace(self, trace_id):
         self.enabled_traces[trace_id][0]['end'] = self.current_time

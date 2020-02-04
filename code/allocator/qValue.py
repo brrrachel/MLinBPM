@@ -1,6 +1,7 @@
 from pytimeparse.timeparse import timeparse
 from utils import get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, proceed_resources, get_time_range
 from resource import Resource
+from plotting import resource_heatmap
 
 
 class QValueAllocator:
@@ -49,6 +50,8 @@ class QValueAllocator:
                             q_min = self.q[new_state][q_action]
                     self.q[state][action] = abs(round((self.lr - 1) * self.q[state][action] + self.lr * (
                             duration + (self.gamma * q_min)), 2))
+
+        resource_heatmap(self.q)
         return self
 
     def allocate_resource(self, trace_id, activity):
