@@ -5,7 +5,6 @@ from collections import Counter
 from plotting import occurrence_plotting, input_data_duration_plotting
 from dateutil.parser import parse
 from operator import getitem
-from tqdm import tqdm
 
 path = '../data/'
 files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
@@ -76,7 +75,7 @@ def _load_xes(file):
 
 
 def _get_filename(threshold, threshold_occurrence_in_traces):
-    return path + 'preprocessed/preprocessed_' + str(threshold).split('.')[1] + '_' + str(threshold_occurrence_in_traces).split('.')[1] + '.json'
+    return path + 'preprocessed/preprocessed_' + str(threshold).split('.')[1] + "_" + str(threshold_occurrence_in_traces).split('.')[1] + '.json'
 
 
 def _load_preprocessed_data(threshold, threshold_occurrence_in_traces):
@@ -176,6 +175,7 @@ def load_data(threshold_total, threshold_occurrence_in_traces, start, end):
 
     original_data = _load_preprocessed_data(0.0, 0.0)
     if not original_data:
+        original_data = {}
         print('Data loading ...')
         for file in files:
             original_data.update(_load_xes(file))

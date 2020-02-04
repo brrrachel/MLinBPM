@@ -104,7 +104,7 @@ def get_time_range(data, start_time):
     return int((end_time_allocation - start_time).total_seconds())
 
 
-def proceed_resources(time, enabled_traces, resources):
+def proceed_resources(time, enabled_traces, resources, interval):
     # if 9 <= time.hour < 17:
     for resource_id in resources:
         resource = resources[resource_id]

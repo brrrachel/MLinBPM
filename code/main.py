@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser.add_option("-e", "--end", dest="end", help="Set End date to limit data [YYYY/MM/DD], default = 2015/02/15", action="store", default="2015/02/15", type="string")
     (options, args) = parser.parse_args()
 
-    print('Selected Threshold: ', options.threshold)
+    print('Selected Thresholds: ' + str(options.threshold) + " and " + str(options.threshold_traces))
     data, original_data = load_data(options.threshold, options.threshold_traces, options.start, options.end)
     print('Data Loaded')
 

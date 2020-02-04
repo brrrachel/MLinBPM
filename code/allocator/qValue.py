@@ -1,7 +1,9 @@
 from pytimeparse.timeparse import timeparse
-from utils import get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, proceed_resources, get_time_range
+from utils import get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, proceed_resources, get_time_range, compute_timedelta
 from resource import Resource
-from plotting import resource_heatmap
+from tqdm import tqdm
+import math
+from plotting import resource_distribution
 
 
 class QValueAllocator:
@@ -34,7 +36,7 @@ class QValueAllocator:
             self.resources[resource_id] = Resource(self, resource_id, None, None)
 
         # iterate over each event of the traces and update the q-value dict by update formula
-        for trace_number in data:
+        for trace_number in tqdm(data):
             trace = data[trace_number]
             for i in range(len(trace['events'])):
                 event = trace['events'][i]
@@ -51,7 +53,7 @@ class QValueAllocator:
                     self.q[state][action] = abs(round((self.lr - 1) * self.q[state][action] + self.lr * (
                             duration + (self.gamma * q_min)), 2))
 
-        resource_heatmap(self.q)
+        resource_distribution(self.q)
         return self
 
     def allocate_resource(self, trace_id, activity):
@@ -61,16 +63,16 @@ class QValueAllocator:
             best_resource = self.resources[available_resources[0]]
             for resource_id in available_resources:
                 resource = self.resources[resource_id]
-                if self.q[activity['activity']][resource.resource_id] != 0:
-                    if self.q[activity['activity']][resource.resource_id] < self.q[activity['activity']][best_resource.get_resource_id()]:
+                if self.q[activity['activity']][resource_id] != 0:
+                    if self.q[activity['activity']][resource_id] < self.q[activity['activity']][best_resource.resource_id]:
                         best_resource = resource
 
             if self.q[activity['activity']][best_resource.resource_id] == 0:
                 return 'free', None
             else:
-                expected_duration = self.q[activity['activity']][best_resource.resource_id]
+                expected_duration = compute_timedelta(math.ceil(self.q[activity['activity']][best_resource.resource_id]))
                 activity['duration'] = expected_duration
-                best_resource.allocate_for_activity(trace_id, activity)
+                best_resource.allocate_for_activity(activity)
                 return 'busy', best_resource.resource_id
         else:
             return 'free', None
