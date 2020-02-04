@@ -77,10 +77,10 @@ def _load_xes(file):
             'events': events
         }
 
-    # print("max-duration", compute_timedelta(max(total_duration)))
-    # print("min-duration", compute_timedelta(min(total_duration)))
-    # print("median-duration", compute_timedelta(statistics.median(total_duration)))
-    # print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
+    print("max-duration", compute_timedelta(max(total_duration)))
+    print("min-duration", compute_timedelta(min(total_duration)))
+    print("median-duration", compute_timedelta(statistics.median(total_duration)))
+    print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
 
     return log
 
@@ -200,8 +200,8 @@ def load_data(threshold_total, threshold_occurrence_in_traces, start, end):
         preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
 
     if preprocessed_data:
-        # input_data_duration_plotting(data, threshold)
         limited_data = _limit_data(preprocessed_data, parsed_start, parsed_end)
+        input_data_duration_plotting(limited_data, threshold_total)
         return limited_data, original_data
     else:
         print('No data available.')

@@ -82,4 +82,3 @@ class QValueAllocator:
         else:
 
             return 'free', None
-

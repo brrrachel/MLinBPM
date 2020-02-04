@@ -64,4 +64,3 @@ class QValueAllocatorMultiDimension(QValueAllocator):
         else:
             print('no resources')
             return 'free', None
-

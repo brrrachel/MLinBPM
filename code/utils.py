@@ -129,7 +129,6 @@ def get_time_range(data, start_time):
 
 
 def proceed_resources(time, enabled_traces, resources, interval):
-    # if 9 <= time.hour < 17:
     for resource_id in resources:
         resource = resources[resource_id]
         if resources[resource_id].workload > 0:

@@ -5,10 +5,8 @@ from allocator.greedy import GreedyAllocator
 from allocator.qValue import QValueAllocator
 from allocator.qValueMultiDimension import QValueAllocatorMultiDimension
 import datetime
-from utils import compute_timedelta, parse_timedelta
+from utils import compute_timedelta, parse_timedelta, calculate_salaries
 import statistics
-
-
 from optparse import OptionParser
 import json
 
