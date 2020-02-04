@@ -4,6 +4,8 @@ import json
 from collections import Counter
 from plotting import occurrence_plotting, input_data_duration_plotting
 from dateutil.parser import parse
+from utils import parse_timedelta, compute_timedelta
+import statistics
 from operator import getitem
 
 path = '../data/'
@@ -16,6 +18,8 @@ def _load_xes(file):
 
     tree = et.parse(path + file)
     data = tree.getroot()
+
+    total_duration = []
 
     for trace in data.findall('{http://www.xes-standard.org/}trace'):
 
@@ -58,11 +62,13 @@ def _load_xes(file):
             if ('planned' in event) & (event['duration'] < one_second):
                 event['duration'] = event['planned'] - event['start']
             if event['duration'] < one_second:
-                event['duration'] = datetime.timedelta(hours=0, minutes=0, seconds=0)
+                event['duration'] = datetime.timedelta(hours=0, minutes=0, seconds=1)
             last_end = event['end']
             # INFO: planned is not useful because sometimes planned or end is before start
 
+            total_duration.append((event['duration']).total_seconds())
             events.append(event)
+
         log[trace_id] = {
             'trace_id': trace_id,
             'start': start,
@@ -70,6 +76,11 @@ def _load_xes(file):
             'municipality': file.split('.')[0],
             'events': events
         }
+
+    # print("max-duration", compute_timedelta(max(total_duration)))
+    # print("min-duration", compute_timedelta(min(total_duration)))
+    # print("median-duration", compute_timedelta(statistics.median(total_duration)))
+    # print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
 
     return log
 

@@ -161,5 +161,5 @@ def parse_timedelta(text):
     else:
         days = 0
         timestamp = text
-    t = datetime.datetime.strptime(timestamp, "%H:%M:%S") + datetime.timedelta(days=int(days))
-    return datetime.timedelta(days=t.day, hours=t.hour, minutes=t.minute, seconds=t.second)
+    t = datetime.datetime.strptime(timestamp, "%H:%M:%S")
+    return datetime.timedelta(days=int(days), hours=t.hour, minutes=t.minute, seconds=t.second)

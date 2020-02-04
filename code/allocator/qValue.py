@@ -60,7 +60,12 @@ class QValueAllocator:
         available_resources = get_available_resources(self.resources, self.workload)
         if available_resources:
             # find best resource regarding the qValue
-            best_resource = self.resources[available_resources[0]]
+            first_resource_key = None
+            for resource_iter in self.q[activity['activity']]:
+                if self.q[activity['activity']][resource_iter] > 0:
+                    first_resource_key = resource_iter
+                    break
+            best_resource = self.resources[first_resource_key]
             for resource_id in available_resources:
                 resource = self.resources[resource_id]
                 if self.q[activity['activity']][resource_id] != 0:
@@ -72,8 +77,9 @@ class QValueAllocator:
             else:
                 expected_duration = compute_timedelta(math.ceil(self.q[activity['activity']][best_resource.resource_id]))
                 activity['duration'] = expected_duration
-                best_resource.allocate_for_activity(activity)
+                best_resource.allocate_for_activity(trace_id, activity)
                 return 'busy', best_resource.resource_id
         else:
+
             return 'free', None
 

@@ -38,7 +38,7 @@ class Simulator:
         if len(self.enabled_traces[trace_id]) == 0:
             self.enabled_traces.pop(trace_id)
 
-    def _allocate_activity(self, trace_id, interval):
+    def _allocate_activity(self, trace_id):
         new_status, resource_id = self.allocator.allocate_resource(trace_id, self.enabled_traces[trace_id][0])
         self.enabled_traces[trace_id][0]['status'] = new_status
         self.enabled_traces[trace_id][0]['resource'] = resource_id
@@ -76,12 +76,11 @@ class Simulator:
                 for trace_id in list(self.enabled_traces.keys()):
                     if self.enabled_traces[trace_id][0]['status'] == 'done':
                         self._remove_activity_from_trace(trace_id)  # removes also trace from enabled_traces if all activities are done
-                    if trace_id in self.enabled_traces:
-                        if self.enabled_traces[trace_id][0]['status'] == 'free':
-                            self._allocate_activity(trace_id, self.interval)
+                    if trace_id in self.enabled_traces and self.enabled_traces[trace_id][0]['status'] == 'free':
+                        self._allocate_activity(trace_id)
                     self.allocator.resources, self.enabled_traces = proceed_resources(self.current_time, self.enabled_traces, self.allocator.resources, self.interval)
-                print(self.current_time)
-                print('Enabled Traces', self.enabled_traces)
+                # print(self.current_time)
+                # print('Enabled Traces', self.enabled_traces)
             self._update_progress_bar()
         self.bar.finish()
 

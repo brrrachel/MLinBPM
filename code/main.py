@@ -1,4 +1,3 @@
-from utils import calculate_salaries
 from dataLoader import load_data
 from plotting import allocation_duration_plotting, resource_workload_plotting, activity_occurence_histogram
 from simulator import Simulator
@@ -6,6 +5,9 @@ from allocator.greedy import GreedyAllocator
 from allocator.qValue import QValueAllocator
 from allocator.qValueMultiDimension import QValueAllocatorMultiDimension
 import datetime
+from utils import compute_timedelta, parse_timedelta
+import statistics
+
 
 from optparse import OptionParser
 import json
@@ -30,6 +32,15 @@ if __name__ == '__main__':
 
     salary = calculate_salaries(data)
     activity_occurence_histogram(salary)
+
+    total_duration = []
+    for trace_id in original_data.keys():
+        for event in original_data[trace_id]['events']:
+            total_duration.append((parse_timedelta(event['duration'])).total_seconds())
+    print("max-duration", compute_timedelta(max(total_duration)))
+    print("min-duration", compute_timedelta(min(total_duration)))
+    print("median-duration", compute_timedelta(statistics.median(total_duration)))
+    print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
 
     allocator = None
     allocator_name = None
@@ -63,6 +74,6 @@ if __name__ == '__main__':
     with open('results/' + str(options.threshold) + '_' + allocator_name + '.json', 'w') as fp:
         json.dump(results, fp, default=converter)
     allocation_duration_plotting(results, allocator_name, options.threshold)
-    resource_workload_plotting(results, allocator_name, options.threshold)
+    resource_workload_plotting(results, allocator_name, options.threshold, options.threshold_traces)
 
     print('Finished')
