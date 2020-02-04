@@ -11,7 +11,7 @@ class Resource:
     planned_duration = None
     skills = None
     queue = []
-    salary = None
+    salary = None  # hourly wages
 
     def __init__(self, allocator, resource_id, skills, salary):
         self.resource_id = resource_id

@@ -165,7 +165,7 @@ def preprocess(data, total_num_threshold, trace_num_threshold):
     return preprocessed_data
 
 
-def _limit_data(data, start, end):
+def limit_data(data, start, end):
     # limit data, where start of the trace and end of the last event in trace are between the defined start and end time
     print('Limiting Data to ' + start.__str__() + ' and ' + end.__str__())
     limited_data = {}
@@ -180,9 +180,7 @@ def _limit_data(data, start, end):
     return limited_data
 
 
-def load_data(threshold_total, threshold_occurrence_in_traces, start, end):
-    parsed_start = datetime.datetime.strptime(start, "%Y/%m/%d")
-    parsed_end = datetime.datetime.strptime(end, "%Y/%m/%d")
+def load_data(threshold_total, threshold_occurrence_in_traces):
 
     original_data = _load_preprocessed_data(0.0, 0.0)
     if not original_data:
@@ -200,9 +198,7 @@ def load_data(threshold_total, threshold_occurrence_in_traces, start, end):
         preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
 
     if preprocessed_data:
-        # input_data_duration_plotting(data, threshold)
-        limited_data = _limit_data(preprocessed_data, parsed_start, parsed_end)
-        return limited_data, original_data
+        return preprocessed_data, original_data
     else:
         print('No data available.')
         exit(0)

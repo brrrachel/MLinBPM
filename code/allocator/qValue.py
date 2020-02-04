@@ -14,13 +14,12 @@ class QValueAllocator:
 
     workload = 1
     resources = {}
-    salary = {}
 
-    def __init__(self, salary, workload):
-        self.salary = salary
+    def __init__(self, workload):
         self.workload = workload
+        return
 
-    def fit(self, data):
+    def fit(self, data, salary):
 
         activities = get_activities(data)
         resources = get_resource_ids(data)
@@ -33,7 +32,7 @@ class QValueAllocator:
 
         # add resources
         for resource_id in resources:
-            self.resources[resource_id] = Resource(self, resource_id, None, None)
+            self.resources[resource_id] = Resource(self, resource_id, None, salary[resource_id]['salary'])
 
         # iterate over each event of the traces and update the q-value dict by update formula
         for trace_number in tqdm(data):
