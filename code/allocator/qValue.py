@@ -14,11 +14,11 @@ class QValueAllocator:
 
     workload = 1
     resources = {}
+    salary = {}
 
-    def __init__(self, workload):
+    def __init__(self, salary, workload):
+        self.salary = salary
         self.workload = workload
-        print(self.workload)
-        return
 
     def fit(self, data):
 

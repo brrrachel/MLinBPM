@@ -5,10 +5,11 @@ from resource import Resource
 
 class GreedyAllocator:
 
+    salary = {}
     resources = {}
 
-    def __init__(self):
-        return
+    def __init__(self, salary):
+        self.salary = salary
 
     def fit(self, data):
         resources_ids = get_resource_ids(data)

@@ -1,6 +1,4 @@
 import random
-import datetime
-from dateutil.parser import parse
 
 
 class Resource:

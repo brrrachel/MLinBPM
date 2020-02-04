@@ -1,10 +1,8 @@
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import datetime
 from dateutil.parser import parse
 from tqdm import tqdm
-from utils import parse_timedelta
+from utils import parse_timedelta, normalize_salary
 
 plt.rcParams["font.family"] = "Times New Roman"
 

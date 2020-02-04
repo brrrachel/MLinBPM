@@ -1,5 +1,6 @@
+from utils import calculate_salaries
 from dataLoader import load_data
-from plotting import allocation_duration_plotting, resource_workload_plotting
+from plotting import allocation_duration_plotting, resource_workload_plotting, activity_occurence_histogram
 from simulator import Simulator
 from allocator.greedy import GreedyAllocator
 from allocator.qValue import QValueAllocator
@@ -27,21 +28,24 @@ if __name__ == '__main__':
     data, original_data = load_data(options.threshold, options.threshold_traces, options.start, options.end)
     print('Data Loaded')
 
+    salary = calculate_salaries(data)
+    activity_occurence_histogram(salary)
+
     allocator = None
     allocator_name = None
     if options.q_value and options.q_value_multi or options.q_value and options.greedy or options.greedy and options.q_value_multi or options.q_value and options.q_value_multi and options.greedy:
         print('You chose to many allocators. Please choose only one of the following: -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension')
     if options.q_value:
         print('Using QValueAllocator with workload ' + str(options.q_value_workload))
-        allocator = QValueAllocator(options.q_value_workload)
+        allocator = QValueAllocator(salary, options.q_value_workload)
         allocator_name = 'QValueAllocator_w' + str(options.q_value_workload)
     elif options.greedy:
         print('Using GreedyAllocator')
-        allocator = GreedyAllocator()
+        allocator = GreedyAllocator(salary)
         allocator_name = 'GreedyAllocator'
     elif options.q_value_multi:
         print('Using QValueMultiDimensionAllocator')
-        allocator = QValueAllocatorMultiDimension(options.q_value_workload)
+        allocator = QValueAllocatorMultiDimension(salary, options.q_value_workload)
         allocator_name = 'QValueMultiDimensionAllocator'
 
     if allocator is None:

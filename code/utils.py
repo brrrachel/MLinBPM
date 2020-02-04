@@ -78,7 +78,6 @@ def get_activities_for_resource(data, resource_id):
                 else:
                     # create entry for this activity
                     activities[activity] = parse_timedelta(event['duration']).total_seconds()
-
     return activities
 
 
@@ -87,6 +86,32 @@ def get_resource_ids(data):
     for trace in data.keys():
         resources += [event['resource'] for event in data[trace]['events']]
     return set(resources)
+
+
+def normalize_salary(max_value):
+    steps = range(0, max_value+1, 1)
+
+    def normalize(x, m):
+        return ((x ** 2) / m) + 10
+
+    salary = [normalize(x, max_value) for x in steps]
+    return steps, salary
+
+
+def calculate_salaries(data):
+    resources = get_resource_ids(data)
+    result = {}
+    for id in resources:
+        result[id] = {}
+        result[id]['activities'] = len(list(get_activities_for_resource(data, id).keys()))
+
+    max_value = max([result[key]['activities'] for key in result.keys()])
+    _, salary = normalize_salary(max_value)
+    print(salary)
+    for id in resources:
+        result[id]['salary'] = salary[result[id]['activities']]
+
+    return result
 
 
 def get_available_resources(resources, workload):
