@@ -1,4 +1,4 @@
-from dataLoader import load_data
+from dataLoader import load_data, limit_data
 from plotting import allocation_duration_plotting, resource_workload_plotting, activity_occurence_histogram
 from simulator import Simulator
 from allocator.greedy import GreedyAllocator
@@ -25,7 +25,11 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     print('Selected Thresholds: ' + str(options.threshold) + " and " + str(options.threshold_traces))
-    data, original_data = load_data(options.threshold, options.threshold_traces, options.start, options.end)
+    data, original_data = load_data(options.threshold, options.threshold_traces)
+
+    start = datetime.datetime.strptime(options.start, "%Y/%m/%d")
+    end = datetime.datetime.strptime(options.end, "%Y/%m/%d")
+    limited_data = limit_data(data, start, end)
     print('Data Loaded')
 
     salary = calculate_salaries(data)
@@ -46,24 +50,24 @@ if __name__ == '__main__':
         print('You chose to many allocators. Please choose only one of the following: -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension')
     if options.q_value:
         print('Using QValueAllocator with workload ' + str(options.q_value_workload))
-        allocator = QValueAllocator(salary, options.q_value_workload)
+        allocator = QValueAllocator(options.q_value_workload)
         allocator_name = 'QValueAllocator_w' + str(options.q_value_workload)
     elif options.greedy:
         print('Using GreedyAllocator')
-        allocator = GreedyAllocator(salary)
+        allocator = GreedyAllocator()
         allocator_name = 'GreedyAllocator'
     elif options.q_value_multi:
         print('Using QValueMultiDimensionAllocator')
-        allocator = QValueAllocatorMultiDimension(salary, options.q_value_workload)
+        allocator = QValueAllocatorMultiDimension(options.q_value_workload)
         allocator_name = 'QValueMultiDimensionAllocator'
 
     if allocator is None:
         print("You didn't choose a allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")
         exit(0)
     print('Train Model')
-    allocator.fit(original_data)
+    allocator.fit(original_data, salary)
     print('Allocate Cases')
-    results = Simulator(options.interval, options.end).start(allocator, data)
+    results = Simulator(options.interval, options.end).start(allocator, limited_data)
 
     # evaluate results
     def converter(o):

@@ -5,17 +5,16 @@ from resource import Resource
 
 class GreedyAllocator:
 
-    salary = {}
     resources = {}
 
-    def __init__(self, salary):
-        self.salary = salary
+    def __init__(self):
+        return
 
-    def fit(self, data):
+    def fit(self, data, salary):
         resources_ids = get_resource_ids(data)
         for id in resources_ids:
             skills = get_activities_for_resource(data, id)
-            self.resources[id] = Resource(self, id, skills, None)
+            self.resources[id] = Resource(self, id, skills, salary[id]['salary'])
         return self
 
     def allocate_resource(self, trace_id, activity):
@@ -32,7 +31,6 @@ class GreedyAllocator:
                 else:  # if no resource with the needed skill has been found
                     return 'free', None
 
-            print("Resource " + str(random_resource_id) + " allocated for activity '" + activity['activity'] + "' of trace " + trace_id + " and has now a workload of " + str(resource.workload + 1) + ".")
             activity['duration'] = resource.skills[activity['activity']]
             resource.allocate_for_activity(trace_id, activity)
             return 'busy', random_resource_id

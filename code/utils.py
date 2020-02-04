@@ -74,10 +74,10 @@ def get_activities_for_resource(data, resource_id):
                 activity = event['activity']
                 if activity in activities.keys():
                     # update duration
-                    activities[activity] = (activities[activity] + parse_timedelta(event['duration']).total_seconds()) / 2
+                    activities[activity] = (activities[activity] + parse_timedelta(event['duration'])) / 2
                 else:
                     # create entry for this activity
-                    activities[activity] = parse_timedelta(event['duration']).total_seconds()
+                    activities[activity] = parse_timedelta(event['duration'])
     return activities
 
 
@@ -135,6 +135,7 @@ def proceed_resources(time, enabled_traces, resources, interval):
             finished = resource.proceed_activity(time)
             if finished:
                 enabled_traces[resource.trace_id][0]['status'] = 'done'
+                enabled_traces[resource.trace_id][0]['costs'] = resource.salary / interval.total_seconds()
                 resource.set_as_free()
     return resources, enabled_traces
 

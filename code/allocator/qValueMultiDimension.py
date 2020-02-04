@@ -2,12 +2,12 @@ from allocator.qValue import QValueAllocator
 from resource import Resource
 import random
 from pytimeparse.timeparse import timeparse
-from utils import get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, proceed_resources, get_time_range
+from utils import compute_timedelta, get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, proceed_resources, get_time_range
 
 
 class QValueAllocatorMultiDimension(QValueAllocator):
 
-    def fit(self, data):
+    def fit(self, data, salary):
 
         activities = get_activities(data)
         resources = get_resource_ids(data)
@@ -20,8 +20,7 @@ class QValueAllocatorMultiDimension(QValueAllocator):
 
         # add resources
         for resource_id in resources:
-            random_salary = random.uniform(10, 30)
-            self.resources[resource_id] = Resource(self, resource_id, None, random_salary)
+            self.resources[resource_id] = Resource(self, resource_id, None, salary[resource_id]['salary'])
 
         # iterate over each event of the traces and update the q-value dict by update formula
         for trace_number in data:
@@ -40,7 +39,7 @@ class QValueAllocatorMultiDimension(QValueAllocator):
                             q_min = self.q[new_state][q_action][0]
                     expected_duration = abs(round((self.lr - 1) * self.q[state][action][1] + self.lr * (
                             duration + (self.gamma * q_min)), 2))
-                    self.q[state][action] = (expected_duration * self.resources[action].salary, expected_duration)
+                    self.q[state][action] = (expected_duration * (self.resources[action].salary / 3600), expected_duration)
         return self
 
     def allocate_resource(self, trace_id, activity):
@@ -57,8 +56,8 @@ class QValueAllocatorMultiDimension(QValueAllocator):
             if self.q[activity['activity']][best_resource.resource_id][0] == 0:
                 return 'free', None
             else:
-                expected_duration = self.q[activity['activity']][best_resource.resource_id][1]
-                activity['duration'] = expected_duration
+                expected_duration = int(self.q[activity['activity']][best_resource.resource_id][1])
+                activity['duration'] = compute_timedelta(expected_duration)
                 best_resource.allocate_for_activity(trace_id, activity)
                 return 'busy', best_resource.resource_id
         else:
