@@ -51,7 +51,7 @@ class QValueAllocatorMultiDimension(QValueAllocator):
             for resource_id in available_resources:
                 resource = self.resources[resource_id]
                 if self.q[activity['activity']][resource.resource_id][0] != 0:
-                    if self.q[activity['activity']][resource.resource_id] < self.q[activity['activity']][best_resource.get_resource_id()]:
+                    if self.q[activity['activity']][resource.resource_id] < self.q[activity['activity']][best_resource.resource_id]:
                         best_resource = resource
 
             if self.q[activity['activity']][best_resource.resource_id][0] == 0:
