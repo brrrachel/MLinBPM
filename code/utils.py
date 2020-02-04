@@ -107,7 +107,6 @@ def calculate_salaries(data):
 
     max_value = max([result[key]['activities'] for key in result.keys()])
     _, salary = normalize_salary(max_value)
-    print(salary)
     for id in resources:
         result[id]['salary'] = salary[result[id]['activities']]
 

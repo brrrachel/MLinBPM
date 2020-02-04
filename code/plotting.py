@@ -132,3 +132,23 @@ def resource_distribution(table):
     plt.ylabel("Number of Resources which have already executed this activity")
 
     plt.xticks(x_pos, activities)
+
+
+def activity_occurence_histogram(occurences):
+    fig, ax1 = plt.subplots()
+
+    data = [occurences[key]['activities'] for key in occurences.keys()]
+    bins = list(range(0, max(data), 1))
+    ax1.hist(data, bins=bins, color="grey", edgecolor="white", align='mid')
+    ax1.set_xlabel("Number of different activities per resource")
+    ax1.set_ylabel("Frequency", color="grey")
+    ax1.tick_params(axis='y', labelcolor="grey")
+
+    ax2 = ax1.twinx()
+    _, salary = normalize_salary(max(bins))
+    ax2.plot(bins, salary, color="red")
+    ax2.set_ylabel("Salary", color="red")
+    ax2.tick_params(axis='y', labelcolor="red")
+
+    plt.title("Skills Distribution")
+    plt.savefig('plots/skills_distribution.pdf')
