@@ -24,7 +24,7 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     print('Selected Threshold: ', options.threshold)
-    data = load_data(options.threshold, options.threshold_traces, options.start, options.end)
+    data, original_data = load_data(options.threshold, options.threshold_traces, options.start, options.end)
     print('Data Loaded')
 
     allocator = None
@@ -48,7 +48,7 @@ if __name__ == '__main__':
         print("You didn't choose a allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")
         exit(0)
     print('Train Model')
-    allocator.fit(data)
+    allocator.fit(original_data)
     print('Allocate Cases')
     results = Simulator(options.interval, options.end).start(allocator, data)
 

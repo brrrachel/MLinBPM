@@ -8,7 +8,7 @@ from operator import getitem
 from tqdm import tqdm
 
 path = '../data/'
-files = ['BPIC15_1.xes']  # , 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
+files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
 one_second = datetime.timedelta(hours=0, minutes=0, seconds=1)
 
 
@@ -76,7 +76,7 @@ def _load_xes(file):
 
 
 def _get_filename(threshold, threshold_occurrence_in_traces):
-    return path + 'preprocessed/preprocessed_' + str(threshold).split('.')[1] + str(threshold_occurrence_in_traces).split('.')[1] + '.json'
+    return path + 'preprocessed/preprocessed_' + str(threshold).split('.')[1] + '_' + str(threshold_occurrence_in_traces).split('.')[1] + '.json'
 
 
 def _load_preprocessed_data(threshold, threshold_occurrence_in_traces):
@@ -132,7 +132,8 @@ def preprocess(data, total_num_threshold, trace_num_threshold):
     activities_to_delete_unique = set(activities_to_delete)
 
     for trace in data.keys():
-        if datetime.datetime(year=2010, month=7, day=1) < data[trace]['start'] < datetime.datetime(year=2015, month=2, day=15):
+        start = parse(data[trace]['start'])
+        if datetime.datetime(year=2010, month=7, day=1) < start < datetime.datetime(year=2015, month=2, day=15):
             preprocessed_data[trace] = data[trace].copy()
             preprocessed_data[trace]['events'] = []
             for event in data[trace]['events']:
@@ -173,22 +174,24 @@ def load_data(threshold_total, threshold_occurrence_in_traces, start, end):
     parsed_start = datetime.datetime.strptime(start, "%Y/%m/%d")
     parsed_end = datetime.datetime.strptime(end, "%Y/%m/%d")
 
-    data = {}
-    preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
-    if preprocessed_data:
-        data = preprocessed_data
-    else:
+    original_data = _load_preprocessed_data(0.0, 0.0)
+    if not original_data:
         print('Data loading ...')
         for file in files:
-            data.update(_load_xes(file))
-        data = preprocess(data, threshold_total, threshold_occurrence_in_traces)
-        _safe_preprocessed_data(data, threshold_total, threshold_occurrence_in_traces)
-        data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
+            original_data.update(_load_xes(file))
+        _safe_preprocessed_data(original_data, 0.0, 0.0)
+        original_data = _load_preprocessed_data(0.0, 0.0)
 
-    if data:
+    preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
+    if not preprocessed_data:
+        preprocessed_data = preprocess(original_data, threshold_total, threshold_occurrence_in_traces)
+        _safe_preprocessed_data(preprocessed_data, threshold_total, threshold_occurrence_in_traces)
+        preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
+
+    if preprocessed_data:
         # input_data_duration_plotting(data, threshold)
-        data = _limit_data(data, parsed_start, parsed_end)
-        return data
+        limited_data = _limit_data(preprocessed_data, parsed_start, parsed_end)
+        return limited_data, original_data
     else:
         print('No data available.')
         exit(0)
