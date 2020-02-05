@@ -128,18 +128,6 @@ def get_time_range(data, start_time):
     return int((end_time_allocation - start_time).total_seconds())
 
 
-def proceed_resources(time, enabled_traces, resources, interval):
-    for resource_id in resources:
-        resource = resources[resource_id]
-        if resources[resource_id].workload > 0:
-            finished = resource.proceed_activity(time)
-            if finished:
-                enabled_traces[resource.trace_id][0]['status'] = 'done'
-                enabled_traces[resource.trace_id][0]['costs'] = resource.salary / interval.total_seconds()
-                resource.set_as_free()
-    return resources, enabled_traces
-
-
 def compute_timedelta(seconds):
     num_days = math.floor(seconds / (24 * 3600))
     rest_seconds = seconds - (num_days * 24 * 3600)

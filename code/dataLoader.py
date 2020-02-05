@@ -62,7 +62,7 @@ def _load_xes(file):
             if ('planned' in event) & (event['duration'] < one_second):
                 event['duration'] = event['planned'] - event['start']
             if event['duration'] < one_second:
-                event['duration'] = datetime.timedelta(hours=0, minutes=0, seconds=1)
+                event['duration'] = one_second
             last_end = event['end']
             # INFO: planned is not useful because sometimes planned or end is before start
 
@@ -198,8 +198,6 @@ def load_data(threshold_total, threshold_occurrence_in_traces):
         preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
 
     if preprocessed_data:
-        limited_data = _limit_data(preprocessed_data, parsed_start, parsed_end)
-        input_data_duration_plotting(limited_data, threshold_total)
         return preprocessed_data, original_data
     else:
         print('No data available.')

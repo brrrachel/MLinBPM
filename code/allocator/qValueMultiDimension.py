@@ -2,7 +2,7 @@ from allocator.qValue import QValueAllocator
 from resource import Resource
 import random
 from pytimeparse.timeparse import timeparse
-from utils import compute_timedelta, get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, proceed_resources, get_time_range
+from utils import compute_timedelta, get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, get_time_range
 
 
 class QValueAllocatorMultiDimension(QValueAllocator):

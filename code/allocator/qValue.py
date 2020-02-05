@@ -1,5 +1,5 @@
 from pytimeparse.timeparse import timeparse
-from utils import get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, proceed_resources, get_time_range, compute_timedelta
+from utils import get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, get_time_range, compute_timedelta
 from resource import Resource
 from tqdm import tqdm
 import math

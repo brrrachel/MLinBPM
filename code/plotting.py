@@ -150,5 +150,4 @@ def activity_occurence_histogram(occurences):
     ax2.set_ylabel("Salary", color="red")
     ax2.tick_params(axis='y', labelcolor="red")
 
-    plt.title("Skills Distribution")
     plt.savefig('plots/skills_distribution.pdf')

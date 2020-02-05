@@ -1,7 +1,7 @@
 import progressbar
 import datetime
 from dateutil.parser import parse
-from utils import get_earliest_trace, proceed_resources, compute_timedelta
+from utils import get_earliest_trace, compute_timedelta
 
 
 class Simulator:
@@ -48,6 +48,15 @@ class Simulator:
             workload = str(self.allocator.resources[resource_id].workload)
             print(self.current_time.__str__(), ": Resource " + resource_id + " allocated for activity '" + activity + "' of trace " + trace_id + " and has now a workload of " + workload + ".")
 
+    def _proceed_resources(self):
+        for resource_id in self.allocator.resources:
+            if self.allocator.resources[resource_id].workload > 0:
+                finished = self.allocator.resources[resource_id].proceed_activity(self.current_time)
+                if finished:
+                    self.enabled_traces[self.allocator.resources[resource_id].trace_id][0]['status'] = 'done'
+                    self.enabled_traces[self.allocator.resources[resource_id].trace_id][0]['costs'] = self.allocator.resources[resource_id].salary / self.interval.total_seconds()
+                    self.allocator.resources[resource_id].set_as_free()
+
     def _update_progress_bar(self):
         self.progressbar_widgets[1] = self.current_time.__str__()
         amount_of_finished = 0
@@ -78,9 +87,7 @@ class Simulator:
                         self._remove_activity_from_trace(trace_id)  # removes also trace from enabled_traces if all activities are done
                     if trace_id in self.enabled_traces and self.enabled_traces[trace_id][0]['status'] == 'free':
                         self._allocate_activity(trace_id)
-                    self.allocator.resources, self.enabled_traces = proceed_resources(self.current_time, self.enabled_traces, self.allocator.resources, self.interval)
-                # print(self.current_time)
-                # print('Enabled Traces', self.enabled_traces)
+            self._proceed_resources()
             self._update_progress_bar()
         self.bar.finish()
 
