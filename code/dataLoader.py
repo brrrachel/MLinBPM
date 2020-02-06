@@ -24,21 +24,14 @@ def _load_xes(file):
     for trace in data.findall('{http://www.xes-standard.org/}trace'):
 
         trace_id = ''
-        start = ''
-        end = ''
         events = []
 
         for info in trace.findall('{http://www.xes-standard.org/}string'):
             if info.attrib['key'] == 'concept:name':
                 trace_id = info.attrib['value']
                 break
-        for info in trace.findall('{http://www.xes-standard.org/}date'):
-            if info.attrib['key'] == 'startDate':
-                start = parse(info.attrib['value']).replace(tzinfo=None)
-            if info.attrib['key'] == 'endDate':
-                end = parse(info.attrib['value']).replace(tzinfo=None)
 
-        last_end = start
+        last_end = None
         for e in trace.iter('{http://www.xes-standard.org/}event'):
             event = {}
 
@@ -47,6 +40,8 @@ def _load_xes(file):
                     event['resource'] = info.attrib['value']
                 if info.attrib['key'] == 'time:timestamp':
                     event['start'] = parse(info.attrib['value']).replace(tzinfo=None)
+                    if last_end is None:
+                        last_end = event['start']
                 if info.attrib['key'] == 'dateFinished':
                     event['end'] = parse(info.attrib['value']).replace(tzinfo=None)
                 if info.attrib['key'] == 'planned':
@@ -69,12 +64,13 @@ def _load_xes(file):
             total_duration.append((event['duration']).total_seconds())
             events.append(event)
 
+        sorted_events = sorted(events, key=lambda e: e['start'])
         log[trace_id] = {
             'trace_id': trace_id,
-            'start': start,
-            'end': end,
+            'start': sorted_events[0]['start'],
+            'end': sorted_events[-1]['end'],
             'municipality': file.split('.')[0],
-            'events': events
+            'events': sorted_events
         }
 
     print("max-duration", compute_timedelta(max(total_duration)))
