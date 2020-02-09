@@ -16,7 +16,7 @@ if __name__ == '__main__':
     parser.add_option("-g", dest="greedy", help="Run Greedy Allocator", action="store_true", default=False)
     parser.add_option("-q", dest="q_value", help="Run QValue Allocator", action="store_true", default=False)
     parser.add_option("-m", dest="q_value_multi", help="Run QValue Allocator with additional salary dimension", action="store_true", default=False)
-    parser.add_option("-w", dest="q_value_workload", help="Set Workload of Q_Value Allocator, default = 1", action="store", default=1, type="int")
+    parser.add_option("-w", dest="workload", help="Set Workload for Allocator, default = 1", action="store", default=1, type="int")
     parser.add_option("-i", dest="interval", help="Interval steps for simulation [Seconds], default = 1800 = 00:30 h", default=1800, type="int", action="store")
     parser.add_option("-s", "--start", dest="start", help="Set Start date to limit data [YYYY/MM/DD], default = 2010/07/01", action="store", default="2010/07/01", type="str")
     parser.add_option("-e", "--end", dest="end", help="Set Start date to limit data [YYYY/MM/DD], default = 2015/02/15", action="store", default="2015/02/15", type="str")
@@ -52,14 +52,14 @@ if __name__ == '__main__':
         print('Using QValueAllocator with workload ' + str(options.q_value_workload))
         allocator = QValueAllocator(options.q_value_workload)
         allocator_name = 'QValueAllocator_w' + str(options.q_value_workload)
+    elif options.q_value_multi:
+        print('Using QValueMultiDimensionAllocator with workload ' + str(options.q_value_workload))
+        allocator = QValueAllocatorMultiDimension(options.q_value_workload)
+        allocator_name = 'QValueMultiDimensionAllocator_w'
     elif options.greedy:
-        print('Using GreedyAllocator')
+        print('Using GreedyAllocator with workload' + str(options.q_value_workload))
         allocator = GreedyAllocator(options.q_value_workload)
         allocator_name = 'GreedyAllocator_w' + str(options.q_value_workload)
-    elif options.q_value_multi:
-        print('Using QValueMultiDimensionAllocator')
-        allocator = QValueAllocatorMultiDimension(options.q_value_workload)
-        allocator_name = 'QValueMultiDimensionAllocator'
 
     if allocator is None:
         print("You didn't choose a allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     def converter(o):
         if isinstance(o, datetime.datetime) or isinstance(o, datetime.timedelta):
             return o.__str__()
-    with open('results/' + str(options.threshold).split('.')[1] + '_' + str(options.threshold_traces).split('.')[1] + '_' + allocator_name + '.json', 'w') as fp:
+    with open('results/' + str(options.threshold).split('.')[1] + '_' + str(options.threshold_traces).split('.')[1] + '_' + allocator_name + '_w' + options.q_value_workload + '.json', 'w') as fp:
         json.dump(results, fp, default=converter)
     # allocation_duration_plotting(results, allocator_name, options.threshold)
     # resource_workload_plotting(results, allocator_name, options.threshold, options.threshold_traces)
