@@ -28,10 +28,9 @@ def plot_costs(data):
     for trace in data[next(iter(data))]:
         if trace != 'workload':
             traces.add(trace)
-    traces = sorted(traces)
     x = np.arange(len(traces))
 
-    index = 1
+    index = -1
 
     for allocator_key in data.keys():
         allocator_data = data[allocator_key]
@@ -56,9 +55,6 @@ def plot_costs(data):
     ax.set_xticklabels(traces)
     ax.legend()
 
-    # for rect in rects:
-        # ax = autolabel(rect, ax)
-
     fig.tight_layout()
 
     fig.savefig("plots/cost/cost_comparison.png")
@@ -72,8 +68,8 @@ q_value_w1 = _load_preprocessed_data('QValueAllocator', '1', 0.0017, 0.005)
 q_value_w3 = _load_preprocessed_data('QValueAllocator', '1', 0.0017, 0.005)
 
 complete_data['GreedyAllocator_w1'] = greedy_w1
-complete_data['GreedyAllocator_w3'] = greedy_w3
+# complete_data['GreedyAllocator_w3'] = greedy_w3
 complete_data['QValueAllocator_w1'] = q_value_w1
-complete_data['QValueAllocator_w3'] = q_value_w3
+# complete_data['QValueAllocator_w3'] = q_value_w3
 
 plot_costs(complete_data)
