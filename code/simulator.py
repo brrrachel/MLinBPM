@@ -1,7 +1,8 @@
 import progressbar
 import datetime
 from dateutil.parser import parse
-from utils import get_earliest_trace, compute_timedelta
+from utils import get_earliest_trace, compute_timedelta, parse_timedelta, get_available_resources, get_num_of_busy_resources
+import statistics
 
 
 class Simulator:
@@ -61,12 +62,22 @@ class Simulator:
         self.progressbar_widgets[1] = self.current_time.__str__()
         amount_of_finished = 0
         for trace_key in self.results.keys():
-            if trace_key not in self.enabled_traces:
+            if trace_key not in self.enabled_traces and trace_key != 'workload' :
                 amount_of_finished += 1
         self.bar.update(amount_of_finished)
         self.current_time += self.interval
 
     def start(self, allocator, data):
+
+        total_duration = []
+        for trace_id in data.keys():
+            for event in data[trace_id]['events']:
+                total_duration.append((parse_timedelta(event['duration'])).total_seconds())
+        print("max-duration", compute_timedelta(max(total_duration)))
+        print("min-duration", compute_timedelta(min(total_duration)))
+        print("median-duration", compute_timedelta(statistics.median(total_duration)))
+        print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
+
         self.allocator = allocator
         self.trace_ids = list(data.keys())
         self.current_time = parse(get_earliest_trace(data)['start']) - self.interval
@@ -76,10 +87,13 @@ class Simulator:
             ' Finished Traces (', progressbar.Timer(), ') ',
         ]
 
+        self.results['workload'] = {}
+
         print('--------------------------------------------------------------------------')
         self.bar = progressbar.ProgressBar(maxval=len(self.trace_ids), redirect_stdout=True, widgets=self.progressbar_widgets)
         self.bar.start()
         while len(self.enabled_traces) > 0 or len(self.trace_ids) > 0:
+            self.results['workload'][str(self.current_time)] = get_num_of_busy_resources(self.allocator.resources)
             self._search_for_new_traces(data, self.current_time)
             if list(self.enabled_traces.keys()):
                 for trace_id in list(self.enabled_traces.keys()):

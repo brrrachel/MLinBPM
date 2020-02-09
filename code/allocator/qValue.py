@@ -52,7 +52,7 @@ class QValueAllocator:
                     self.q[state][action] = abs(round((self.lr - 1) * self.q[state][action] + self.lr * (
                             duration + (self.gamma * q_min)), 2))
 
-        resource_distribution(self.q)
+        # resource_distribution(self.q)
         return self
 
     def allocate_resource(self, trace_id, activity):

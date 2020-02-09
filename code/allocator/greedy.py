@@ -7,7 +7,10 @@ class GreedyAllocator:
 
     resources = {}
 
-    def __init__(self):
+    workload = 1
+
+    def __init__(self, workload):
+        self.workload = workload
         return
 
     def fit(self, data, salary):
@@ -18,7 +21,7 @@ class GreedyAllocator:
         return self
 
     def allocate_resource(self, trace_id, activity):
-        available_resources = get_available_resources(self.resources, 1)
+        available_resources = get_available_resources(self.resources, self.workload)
         if available_resources:
 
             random_resource_id = random.choice(available_resources)

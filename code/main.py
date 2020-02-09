@@ -1,5 +1,5 @@
 from dataLoader import load_data, limit_data
-from plotting import allocation_duration_plotting, resource_workload_plotting, activity_occurence_histogram
+from plotting import allocation_duration_plotting, resource_workload_plotting, activity_occurence_histogram, plot_workload, input_data_duration_plotting, trace_duration_plotting
 from simulator import Simulator
 from allocator.greedy import GreedyAllocator
 from allocator.qValue import QValueAllocator
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parser.add_option("-q", dest="q_value", help="Run QValue Allocator", action="store_true", default=False)
     parser.add_option("-m", dest="q_value_multi", help="Run QValue Allocator with additional salary dimension", action="store_true", default=False)
     parser.add_option("-w", dest="q_value_workload", help="Set Workload of Q_Value Allocator", action="store", default=1, type="int")
-    parser.add_option("-s", "--start", dest="start", help="Set Start date to limit data [YYYY/MM/DD], default = 2007/07/01", action="store", default="2010/07/01", type="string")
+    parser.add_option("-s", "--start", dest="start", help="Set Start date to limit data [YYYY/MM/DD], default = 2010/07/01", action="store", default="2010/07/01", type="string")
     parser.add_option("-e", "--end", dest="end", help="Set End date to limit data [YYYY/MM/DD], default = 2015/02/15", action="store", default="2015/02/15", type="string")
     (options, args) = parser.parse_args()
 
@@ -35,14 +35,14 @@ if __name__ == '__main__':
     salary = calculate_salaries(data)
     activity_occurence_histogram(salary)
 
-    total_duration = []
-    for trace_id in original_data.keys():
-        for event in original_data[trace_id]['events']:
-            total_duration.append((parse_timedelta(event['duration'])).total_seconds())
-    print("max-duration", compute_timedelta(max(total_duration)))
-    print("min-duration", compute_timedelta(min(total_duration)))
-    print("median-duration", compute_timedelta(statistics.median(total_duration)))
-    print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
+    # total_duration = []
+    # for trace_id in original_data.keys():
+    #     for event in original_data[trace_id]['events']:
+    #         total_duration.append((parse_timedelta(event['duration'])).total_seconds())
+    # print("max-duration", compute_timedelta(max(total_duration)))
+    # print("min-duration", compute_timedelta(min(total_duration)))
+    # print("median-duration", compute_timedelta(statistics.median(total_duration)))
+    # print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
 
     allocator = None
     allocator_name = None
@@ -54,8 +54,8 @@ if __name__ == '__main__':
         allocator_name = 'QValueAllocator_w' + str(options.q_value_workload)
     elif options.greedy:
         print('Using GreedyAllocator')
-        allocator = GreedyAllocator()
-        allocator_name = 'GreedyAllocator'
+        allocator = GreedyAllocator(options.q_value_workload)
+        allocator_name = 'GreedyAllocator_w' + str(options.q_value_workload)
     elif options.q_value_multi:
         print('Using QValueMultiDimensionAllocator')
         allocator = QValueAllocatorMultiDimension(options.q_value_workload)
@@ -64,6 +64,9 @@ if __name__ == '__main__':
     if allocator is None:
         print("You didn't choose a allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")
         exit(0)
+
+    # input_data_duration_plotting(limited_data, options.threshold, options.threshold_traces)
+
     print('Train Model')
     allocator.fit(original_data, salary)
     print('Allocate Cases')
@@ -73,9 +76,11 @@ if __name__ == '__main__':
     def converter(o):
         if isinstance(o, datetime.datetime) or isinstance(o, datetime.timedelta):
             return o.__str__()
-    with open('results/' + str(options.threshold) + '_' + allocator_name + '.json', 'w') as fp:
+    with open('results/' + str(options.threshold).split('.')[1] + '_' + str(options.threshold_traces).split('.')[1] + '_' + allocator_name + '.json', 'w') as fp:
         json.dump(results, fp, default=converter)
-    allocation_duration_plotting(results, allocator_name, options.threshold)
-    resource_workload_plotting(results, allocator_name, options.threshold, options.threshold_traces)
+    # allocation_duration_plotting(results, allocator_name, options.threshold)
+    # resource_workload_plotting(results, allocator_name, options.threshold, options.threshold_traces)
+    plot_workload(results['workload'], options.threshold, options.threshold_traces, options.q_value_workload, allocator_name.split("_")[0])
+    trace_duration_plotting(results, allocator_name.split("_")[0], options.threshold, options.threshold_traces, options.q_value_workload)
 
     print('Finished')

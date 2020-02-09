@@ -122,6 +122,15 @@ def get_available_resources(resources, workload):
     return available_resources_id
 
 
+def get_num_of_busy_resources(resources):
+    available_resources_id = []
+    for resource_id in resources.keys():
+        resource = resources[resource_id]
+        if resource.workload > 0:
+            available_resources_id.append(resource_id)
+    return len(available_resources_id)
+
+
 def get_time_range(data, start_time):
     latest_trace = get_latest_trace(data)
     end_time_allocation = get_trace_endtime(latest_trace)

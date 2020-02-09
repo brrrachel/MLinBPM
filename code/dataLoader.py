@@ -2,7 +2,7 @@ import xml.etree.ElementTree as et
 import datetime
 import json
 from collections import Counter
-from plotting import occurrence_plotting, input_data_duration_plotting
+from plotting import occurrence_plotting
 from dateutil.parser import parse
 from utils import parse_timedelta, compute_timedelta
 import statistics
@@ -73,10 +73,10 @@ def _load_xes(file):
             'events': sorted_events
         }
 
-    print("max-duration", compute_timedelta(max(total_duration)))
-    print("min-duration", compute_timedelta(min(total_duration)))
-    print("median-duration", compute_timedelta(statistics.median(total_duration)))
-    print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
+    # print("max-duration", compute_timedelta(max(total_duration)))
+    # print("min-duration", compute_timedelta(min(total_duration)))
+    # print("median-duration", compute_timedelta(statistics.median(total_duration)))
+    # print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
 
     return log
 
