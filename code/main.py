@@ -59,7 +59,7 @@ if __name__ == '__main__':
     elif options.q_value_multi:
         print('Using QValueMultiDimensionAllocator')
         allocator = QValueAllocatorMultiDimension(options.q_value_workload)
-        allocator_name = 'QValueMultiDimensionAllocator'
+        allocator_name = 'QValueMultiDimensionAllocator_w' + str(options.q_value_workload)
 
     if allocator is None:
         print("You didn't choose a allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")

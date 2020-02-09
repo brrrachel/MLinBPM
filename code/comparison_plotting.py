@@ -50,7 +50,7 @@ def plot_costs(data):
            title='Costs per trace')
 
     ax.set_xticks(x)
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=90)
     print(traces)
     ax.set_xticklabels(traces)
     ax.legend()
@@ -65,11 +65,13 @@ complete_data = {}
 greedy_w1 = _load_preprocessed_data('GreedyAllocator', '1', 0.0017, 0.005)
 greedy_w3 = _load_preprocessed_data('GreedyAllocator', '3', 0.0017, 0.005)
 q_value_w1 = _load_preprocessed_data('QValueAllocator', '1', 0.0017, 0.005)
-q_value_w3 = _load_preprocessed_data('QValueAllocator', '1', 0.0017, 0.005)
+q_value_w3 = _load_preprocessed_data('QValueAllocator', '3', 0.0017, 0.005)
+q_value_multi_w1 = _load_preprocessed_data('QValueMultiDimensionAllocator', '1', 0.0017, 0.005)
 
 complete_data['GreedyAllocator_w1'] = greedy_w1
 # complete_data['GreedyAllocator_w3'] = greedy_w3
 complete_data['QValueAllocator_w1'] = q_value_w1
 # complete_data['QValueAllocator_w3'] = q_value_w3
+complete_data['QValueMultiDimensionAllocator_w1'] = q_value_multi_w1
 
 plot_costs(complete_data)
