@@ -28,13 +28,31 @@ def legend_without_duplicate_labels(ax):
     ax.legend(*zip(*unique), loc="best")
 
 
-def occurrence_plotting(occurrences, threshold, trace_num_threshold):
+def occurrence_plotting(occurrences, total_num_threshold, trace_num_threshold):
     values = sorted(list(occurrences.values()))
     plt.plot(range(len(values)), values)
-    plt.xlabel('Activities')
+    plt.xlabel('Activity ID')
     plt.ylabel('Occurences')
     plt.grid(True)
-    plt.savefig('plots/occurences_' + str(threshold).split('.')[1] + str(trace_num_threshold).split('.')[1] + '.pdf')
+    plt.savefig('plots/activities/occurrences_' + str(total_num_threshold).split('.')[1] + '_' + str(trace_num_threshold).split('.')[1] + '.pdf')
+
+
+def input_data_duration_plotting(data, threshold):
+    filename = 'plots/inputDataDuration/' + str(threshold).split('.')[1] + '.pdf'
+    fig, ax = plt.subplots()
+
+    print("Plotting duration of traces in log")
+    index = 0
+    for trace in tqdm(data.keys()):
+        for event in data[trace]['events']:
+            start, duration = _get_start_duration(event)
+            ax.hlines(y=trace, xmin=start, xmax=(start + duration))
+        index += 1
+
+    plt.xlabel('Time')
+    plt.ylabel('Traces')
+    plt.grid(True)
+    plt.savefig(filename)
 
 
 def allocation_duration_plotting(results, allocator, threshold):
@@ -125,16 +143,9 @@ def activity_occurence_histogram(occurences):
 
     data = [occurences[key]['activities'] for key in occurences.keys()]
     bins = list(range(0, max(data), 1))
-    ax1.hist(data, bins=bins, color="grey", edgecolor="white", align='mid')
+    ax1.hist(data, bins=bins, color="black", edgecolor="white", align='mid')
     ax1.set_xlabel("Number of different activities per resource")
-    ax1.set_ylabel("Frequency", color="grey")
-    ax1.tick_params(axis='y', labelcolor="grey")
-
-    ax2 = ax1.twinx()
-    _, salary = normalize_salary(max(bins))
-    ax2.plot(bins, salary, color="red")
-    ax2.set_ylabel("Salary", color="red")
-    ax2.tick_params(axis='y', labelcolor="red")
+    ax1.set_ylabel("Frequency")
 
     plt.savefig('plots/skills_distribution.pdf')
 
