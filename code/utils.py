@@ -74,10 +74,12 @@ def get_activities_for_resource(data, resource_id):
                 activity = event['activity']
                 if activity in activities.keys():
                     # update duration
-                    activities[activity] = (activities[activity] + parse_timedelta(event['duration'])) / 2
+                    activities[activity].append(parse_timedelta(event['duration']))
                 else:
                     # create entry for this activity
-                    activities[activity] = parse_timedelta(event['duration'])
+                    activities[activity] = [parse_timedelta(event['duration'])]
+    for activity in activities.keys():
+        activities[activity] = sum(activities[activity], datetime.timedelta()) / len(activities[activity])
     return activities
 
 
