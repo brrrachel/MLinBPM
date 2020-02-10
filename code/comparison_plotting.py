@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
-import matplotlib
+from dateutil.parser import parse
 import numpy as np
 from tqdm import tqdm
 import json
+
+plt.rcParams["font.family"] = "Times New Roman"
 
 
 def _get_filename(allocator_name, workload, threshold, threshold_occurrence_in_traces):
@@ -20,58 +22,59 @@ def _load_preprocessed_data(allocator_name, workload, threshold, threshold_occur
 
 def plot_costs(data):
 
-    fig, ax = plt.subplots()
-    width = 0.35  # the width of the bars
-    x = None
     traces = set()
-    print('plotting workload')
+    print('plotting comparison of allocators')
     for trace in data[next(iter(data))]:
         if trace != 'workload':
             traces.add(trace)
-    x = np.arange(len(traces))
 
-    index = -1
+    labels = data.keys()
+    x = np.arange(len(data.keys()))
 
-    for allocator_key in data.keys():
-        allocator_data = data[allocator_key]
-        complete_costs = []
-        for trace_key in tqdm(traces):
-            trace = allocator_data[trace_key]
-            cost = 0
-            for activity in trace:
-                cost_for_activity = activity['costs']
-                cost += cost_for_activity
-            complete_costs.append(cost)
-        ax.bar(x + (index * width), complete_costs, width, label=allocator_key)
-        index += 1
+    data_duration = []
+    data_costs = []
 
-    # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set(xlabel='Trace ID', ylabel='Cost',
-           title='Costs per trace')
+    for allocator_key in tqdm(data.keys()):
 
-    ax.set_xticks(x)
-    plt.xticks(rotation=90)
-    print(traces)
-    ax.set_xticklabels(traces)
-    ax.legend()
+        earliest_start = None
+        latest_end = None
+        cost = 0
 
-    fig.tight_layout()
+        for trace_key in data[allocator_key].keys():
+            if trace_key != 'workload':
+                for activity in data[allocator_key][trace_key]:
+                    cost_for_activity = activity['costs']
+                    cost += cost_for_activity
+                    if (earliest_start is None) or parse(activity['start']) < earliest_start:
+                        earliest_start = parse(activity['start'])
+                    if (latest_end is None) or (parse(activity['end']) > latest_end):
+                        latest_end = parse(activity['end'])
+        data_duration.append(((latest_end - earliest_start).total_seconds()/3600)/24)  # save as days
+        data_costs.append(cost)
 
-    fig.savefig("plots/cost/cost_comparison.png")
+    # Duration Plot
+    plt.subplot(1, 2, 1)
+    plt.bar(x, data_duration, align='center', color="grey")
+    plt.xticks(x, labels, rotation='vertical')
+    plt.ylabel('Total Duration [days]')
+
+    # Cost Plot
+    plt.subplot(1, 2, 2)
+    plt.bar(x, data_costs, align='center', color='#DD640C')
+    plt.xticks(x, labels, rotation='vertical')
+    plt.ylabel('Total Costs')
+
+    plt.tight_layout()
+
+    plt.savefig("plots/cost/cost_comparison.png")
 
 
-complete_data = {}
-
-greedy_w1 = _load_preprocessed_data('GreedyAllocator', '1', 0.0017, 0.005)
-greedy_w3 = _load_preprocessed_data('GreedyAllocator', '3', 0.0017, 0.005)
-q_value_w1 = _load_preprocessed_data('QValueAllocator', '1', 0.0017, 0.005)
-q_value_w3 = _load_preprocessed_data('QValueAllocator', '3', 0.0017, 0.005)
-q_value_multi_w1 = _load_preprocessed_data('QValueMultiDimensionAllocator', '1', 0.0017, 0.005)
-
-complete_data['GreedyAllocator_w1'] = greedy_w1
-# complete_data['GreedyAllocator_w3'] = greedy_w3
-complete_data['QValueAllocator_w1'] = q_value_w1
-# complete_data['QValueAllocator_w3'] = q_value_w3
-complete_data['QValueMultiDimensionAllocator_w1'] = q_value_multi_w1
+complete_data = dict()
+complete_data['GreedyAllocator_w1'] = _load_preprocessed_data('GreedyAllocator', '1', 0.0017, 0.005)
+#complete_data['GreedyAllocator_w3'] = _load_preprocessed_data('GreedyAllocator', '3', 0.0017, 0.005)
+complete_data['QValueAllocator_w1'] = _load_preprocessed_data('QValueAllocator', '1', 0.0017, 0.005)
+#complete_data['QValueAllocator_w3'] = _load_preprocessed_data('QValueAllocator', '1', 0.0017, 0.005)
+complete_data['QValueMultiDimension_w1'] = _load_preprocessed_data('QValueMultiDimensionAllocator', '1', 0.0017, 0.005)
+#complete_data['QValueMultiDimension_w3'] = _load_preprocessed_data('QValueMultiDimensionAllocator', '3', 0.0017, 0.005)
 
 plot_costs(complete_data)
