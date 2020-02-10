@@ -151,7 +151,7 @@ def activity_occurence_histogram(occurences):
 
 
 def input_data_duration_plotting(data,  threshold, trace_num_threshold):
-    filename = 'plots/inputDataDuration/' + str(threshold).split('.')[1] + '_' + str(trace_num_threshold).split('.')[1] + '.pdf'
+    filename = 'plots/inputDataDuration/' + str(threshold).split('.')[1] + '_' + str(trace_num_threshold).split('.')[1] + '.png'
     fig, ax = plt.subplots()
 
     print("Plotting duration of traces in log")
@@ -171,7 +171,7 @@ def input_data_duration_plotting(data,  threshold, trace_num_threshold):
 
 
 def trace_duration_plotting(data, allocator, threshold, trace_num_threshold, workload):
-    filename = 'plots/inputDataDuration/' + allocator + '_w' + str(workload) + '_' + str(threshold).split('.')[1] + '_' + str(trace_num_threshold).split('.')[1] + '.pdf'
+    filename = 'plots/inputDataDuration/' + allocator + '_w' + str(workload) + '_' + str(threshold).split('.')[1] + '_' + str(trace_num_threshold).split('.')[1] + '.png'
     fig, ax = plt.subplots()
 
     print("Plotting duration of traces in log")
@@ -209,4 +209,4 @@ def plot_workload(workloads, threshold, trace_num_threshold, workload, allocator
     ax.grid()
     fig.autofmt_xdate()
 
-    fig.savefig("plots/workload/" + allocator_name + '_w' + str(workload) + '_' + str(threshold).split('.')[1] + '_' + str(trace_num_threshold).split('.')[1] + ".pdf")
+    fig.savefig("plots/workload/" + allocator_name + '_w' + str(workload) + '_' + str(threshold).split('.')[1] + '_' + str(trace_num_threshold).split('.')[1] + ".png")

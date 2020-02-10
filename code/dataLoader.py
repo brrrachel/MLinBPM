@@ -11,6 +11,7 @@ from operator import getitem
 path = '../data/'
 files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
 one_second = datetime.timedelta(hours=0, minutes=0, seconds=1)
+one_minute = datetime.timedelta(hours=0, minutes=1, seconds=0)
 
 
 def _load_xes(file):
@@ -57,7 +58,7 @@ def _load_xes(file):
             if ('planned' in event) & (event['duration'] < one_second):
                 event['duration'] = event['planned'] - event['start']
             if event['duration'] < one_second:
-                event['duration'] = one_second
+                event['duration'] = one_minute
             last_end = event['end']
             # INFO: planned is not useful because sometimes planned or end is before start
 
