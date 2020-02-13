@@ -36,8 +36,7 @@ def plot_costs(data):
 
     for allocator_key in tqdm(data.keys()):
 
-        earliest_start = None
-        latest_end = None
+        duration = 0
         cost = 0
 
         for trace_key in data[allocator_key].keys():
@@ -45,31 +44,28 @@ def plot_costs(data):
                 for activity in data[allocator_key][trace_key]:
                     cost_for_activity = activity['costs']
                     cost += cost_for_activity
-                    print(cost)
-                    if (earliest_start is None) or parse(activity['start']) < earliest_start:
-                        earliest_start = parse(activity['start'])
-                    if (latest_end is None) or (parse(activity['end']) > latest_end):
-                        latest_end = parse(activity['end'])
-        data_duration.append(((latest_end - earliest_start).total_seconds()/3600)/24)  # save as days
-        data_costs.append(cost)
+                    duration += (parse(activity['end']) - parse(activity['start'])).total_seconds()
+
+        data_duration.append(duration/3600)  # save as min
+        data_costs.append(cost / 1000)
 
     # Duration Plot
     plt.subplot(1, 2, 1)
     bar1 = plt.bar(x, data_duration, align='center', color="grey")
     for i in range(len(bar1)):
         heigth = bar1[i].get_height()
-        plt.text(bar1[i].get_x() + bar1[i].get_width()/2, heigth - (heigth/10), round(data_duration[i], 2), size=8, color='black', weight='bold', ha='center', va='bottom')
+        plt.text(bar1[i].get_x() + bar1[i].get_width()/2, heigth, round(data_duration[i], 2), size=8, color='black', weight='bold', ha='center', va='bottom')
     plt.xticks(x, labels, rotation='vertical')
-    plt.ylabel('Total Duration [days]')
+    plt.ylabel('Total Duration [min]')
 
     # Cost Plot
     plt.subplot(1, 2, 2)
     bar2 = plt.bar(x, data_costs, align='center', color='#DD640C')
     for i in range(len(bar2)):
         heigth = bar2[i].get_height()
-        plt.text(bar2[i].get_x() + bar2[i].get_width()/2, heigth - (heigth * 0.1), round(data_costs[i], 2), size=8, color='black', weight='bold', ha='center', va='bottom')
+        plt.text(bar2[i].get_x() + bar2[i].get_width()/2, heigth, round(data_costs[i], 2), size=8, color='black', weight='bold', ha='center', va='bottom')
     plt.xticks(x, labels, rotation='vertical')
-    plt.ylabel('Total Costs')
+    plt.ylabel('Total Costs in thousand')
 
     plt.tight_layout()
 
