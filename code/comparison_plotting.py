@@ -54,13 +54,19 @@ def plot_costs(data):
 
     # Duration Plot
     plt.subplot(1, 2, 1)
-    plt.bar(x, data_duration, align='center', color="grey")
+    bar1 = plt.bar(x, data_duration, align='center', color="grey")
+    for i in range(len(bar1)):
+        heigth = bar1[i].get_height()
+        plt.text(bar1[i].get_x() + bar1[i].get_width()/2, heigth - (heigth/10), round(data_duration[i], 2), size=8, color='white', weight='bold', ha='center', va='bottom')
     plt.xticks(x, labels, rotation='vertical')
     plt.ylabel('Total Duration [days]')
 
     # Cost Plot
     plt.subplot(1, 2, 2)
-    plt.bar(x, data_costs, align='center', color='#DD640C')
+    bar2 = plt.bar(x, data_costs, align='center', color='#DD640C')
+    for i in range(len(bar2)):
+        heigth = bar2[i].get_height()
+        plt.text(bar2[i].get_x() + bar2[i].get_width()/2, heigth - (heigth * 0.1), round(data_costs[i], 2), size=8, color='white', weight='bold', ha='center', va='bottom')
     plt.xticks(x, labels, rotation='vertical')
     plt.ylabel('Total Costs')
 
