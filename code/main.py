@@ -49,17 +49,17 @@ if __name__ == '__main__':
     if options.q_value and options.q_value_multi or options.q_value and options.greedy or options.greedy and options.q_value_multi or options.q_value and options.q_value_multi and options.greedy:
         print('You chose to many allocators. Please choose only one of the following: -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension')
     if options.q_value:
-        print('Using QValueAllocator with workload ' + str(options.q_value_workload))
-        allocator = QValueAllocator(options.q_value_workload)
-        allocator_name = 'QValueAllocator_w' + str(options.q_value_workload)
+        print('Using QValueAllocator with workload ' + str(options.workload))
+        allocator = QValueAllocator(options.workload)
+        allocator_name = 'QValueAllocator_w' + str(options.workload)
     elif options.q_value_multi:
-        print('Using QValueMultiDimensionAllocator with workload ' + str(options.q_value_workload))
-        allocator = QValueAllocatorMultiDimension(options.q_value_workload)
-        allocator_name = 'QValueMultiDimensionAllocator_w'
+        print('Using QValueMultiDimensionAllocator with workload ' + str(options.workload))
+        allocator = QValueAllocatorMultiDimension(options.workload)
+        allocator_name = 'QValueMultiDimensionAllocator_w' + str(options.workload)
     elif options.greedy:
-        print('Using GreedyAllocator with workload' + str(options.q_value_workload))
-        allocator = GreedyAllocator(options.q_value_workload)
-        allocator_name = 'GreedyAllocator_w' + str(options.q_value_workload)
+        print('Using GreedyAllocator with workload' + str(options.workload))
+        allocator = GreedyAllocator(options.workload)
+        allocator_name = 'GreedyAllocator_w' + str(options.workload)
 
     if allocator is None:
         print("You didn't choose a allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")
@@ -76,11 +76,11 @@ if __name__ == '__main__':
     def converter(o):
         if isinstance(o, datetime.datetime) or isinstance(o, datetime.timedelta):
             return o.__str__()
-    with open('results/' + str(options.threshold).split('.')[1] + '_' + str(options.threshold_traces).split('.')[1] + '_' + allocator_name + '_w' + options.q_value_workload + '.json', 'w') as fp:
+    with open('results/' + str(options.threshold).split('.')[1] + '_' + str(options.threshold_traces).split('.')[1] + '_' + allocator_name + '_w' + str(options.workload) + '.json', 'w') as fp:
         json.dump(results, fp, default=converter)
     # allocation_duration_plotting(results, allocator_name, options.threshold)
     # resource_workload_plotting(results, allocator_name, options.threshold, options.threshold_traces)
-    plot_workload(results['workload'], options.threshold, options.threshold_traces, options.q_value_workload, allocator_name.split("_")[0])
-    trace_duration_plotting(results, allocator_name.split("_")[0], options.threshold, options.threshold_traces, options.q_value_workload)
+    plot_workload(results['workload'], options.threshold, options.threshold_traces, str(options.workload), allocator_name.split("_")[0])
+    trace_duration_plotting(results, allocator_name.split("_")[0], options.threshold, options.threshold_traces, str(options.workload))
 
     print('Finished')
