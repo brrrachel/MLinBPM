@@ -103,14 +103,14 @@ def normalize_salary(max_value):
 def calculate_salaries(data):
     resources = get_resource_ids(data)
     result = {}
-    for id in resources:
-        result[id] = {}
-        result[id]['activities'] = len(list(get_activities_for_resource(data, id).keys()))
+    for resource_id in resources:
+        result[resource_id] = {}
+        result[resource_id]['activities'] = len(list(get_activities_for_resource(data, resource_id).keys()))
 
     max_value = max([result[key]['activities'] for key in result.keys()])
     _, salary = normalize_salary(max_value)
-    for id in resources:
-        result[id]['salary'] = salary[result[id]['activities']]
+    for resource_id in resources:
+        result[resource_id]['salary'] = salary[result[resource_id]['activities']]
 
     return result
 

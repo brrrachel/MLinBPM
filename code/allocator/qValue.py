@@ -1,5 +1,4 @@
-from pytimeparse.timeparse import timeparse
-from utils import get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, get_time_range, compute_timedelta
+from utils import get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, get_time_range, parse_timedelta, compute_timedelta
 from resource import Resource
 from tqdm import tqdm
 import math
@@ -35,22 +34,27 @@ class QValueAllocator:
             self.resources[resource_id] = Resource(self, resource_id, None, salary[resource_id]['salary'])
 
         # iterate over each event of the traces and update the q-value dict by update formula
-        for trace_number in tqdm(data):
-            trace = data[trace_number]
+        for trace_id in tqdm(data):
+            trace = data[trace_id]
             for i in range(len(trace['events'])):
                 event = trace['events'][i]
                 state = event['activity']
                 action = event['resource']
+                duration = parse_timedelta(event['duration']).total_seconds()
+                if self.q[state][action] == 0:
+                    self.q[state][action] = duration
+                    continue
                 if i < len(trace['events']) - 1:
                     new_state = trace['events'][i + 1]['activity']
-                    duration = timeparse(event['duration'])
 
                     q_min = 1000000000000000
                     for q_action in self.q[new_state]:
                         if self.q[new_state][q_action] < q_min:
                             q_min = self.q[new_state][q_action]
-                    self.q[state][action] = abs(round((self.lr - 1) * self.q[state][action] + self.lr * (
-                            duration + (self.gamma * q_min)), 2))
+                    self.q[state][action] = round((1 - self.lr) * self.q[state][action] + self.lr * (
+                            duration + (self.gamma * q_min)), 2)
+                else:
+                    self.q[state][action] = round(((1 - self.lr) * self.q[state][action] + self.lr * duration), 2)
 
         # resource_distribution(self.q)
         return self

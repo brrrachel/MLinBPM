@@ -2,8 +2,8 @@ from allocator.qValue import QValueAllocator
 from resource import Resource
 import random
 import math
-from pytimeparse.timeparse import timeparse
-from utils import compute_timedelta, get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, get_trace_endtime, get_time_range
+from pytimeparse import parse
+from utils import compute_timedelta, get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, parse_timedelta, get_trace_endtime, get_time_range
 
 
 class QValueAllocatorMultiDimension(QValueAllocator):
@@ -30,16 +30,22 @@ class QValueAllocatorMultiDimension(QValueAllocator):
                 event = trace['events'][i]
                 activity = event['activity']
                 resource = event['resource']
+                duration = parse_timedelta(event['duration']).total_seconds()
+                if self.q[activity][resource][0] == 0:
+                    self.q[activity][resource] = (duration * (self.resources[resource].salary / 3600), duration)
+                    continue
                 if i < len(trace['events']) - 1:
                     new_activity = trace['events'][i + 1]['activity']
-                    duration = timeparse(event['duration'])
 
                     q_min = 10000000000000000000
                     for q_action in self.q[new_activity]:
                         if self.q[new_activity][q_action][0] < q_min:
                             q_min = self.q[new_activity][q_action][0]
-                    expected_duration = abs(round((self.lr - 1) * self.q[activity][resource][1] + self.lr * (
+                    expected_duration = abs(round((1 - self.lr) * self.q[activity][resource][1] + self.lr * (
                             duration + (self.gamma * q_min)), 2))
+                    self.q[activity][resource] = (expected_duration * (self.resources[resource].salary / 3600), expected_duration)
+                else:
+                    expected_duration = abs(round(((1 - self.lr) * self.q[activity][resource][1] + self.lr * duration), 2))
                     self.q[activity][resource] = (expected_duration * (self.resources[resource].salary / 3600), expected_duration)
         return self
 

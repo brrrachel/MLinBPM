@@ -35,12 +35,15 @@ class Resource:
             self.activity = first_queue[1]
             self.planned_duration = self.activity['duration']
 
+
         if self.activity['start'] + self.planned_duration <= time:
+            #print(self.resource_id, self.activity['start'], self.planned_duration)
             _finish_activity()
             return True
         else:
             percentage = random.uniform(0, 1)
-            if percentage < 0.001:
+            if percentage < 0.0001:
+                print("random finish")
                 _finish_activity()
                 return True
             return False

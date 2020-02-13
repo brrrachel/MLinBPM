@@ -45,6 +45,7 @@ def plot_costs(data):
                 for activity in data[allocator_key][trace_key]:
                     cost_for_activity = activity['costs']
                     cost += cost_for_activity
+                    print(cost)
                     if (earliest_start is None) or parse(activity['start']) < earliest_start:
                         earliest_start = parse(activity['start'])
                     if (latest_end is None) or (parse(activity['end']) > latest_end):
@@ -57,7 +58,7 @@ def plot_costs(data):
     bar1 = plt.bar(x, data_duration, align='center', color="grey")
     for i in range(len(bar1)):
         heigth = bar1[i].get_height()
-        plt.text(bar1[i].get_x() + bar1[i].get_width()/2, heigth - (heigth/10), round(data_duration[i], 2), size=8, color='white', weight='bold', ha='center', va='bottom')
+        plt.text(bar1[i].get_x() + bar1[i].get_width()/2, heigth - (heigth/10), round(data_duration[i], 2), size=8, color='black', weight='bold', ha='center', va='bottom')
     plt.xticks(x, labels, rotation='vertical')
     plt.ylabel('Total Duration [days]')
 
@@ -66,7 +67,7 @@ def plot_costs(data):
     bar2 = plt.bar(x, data_costs, align='center', color='#DD640C')
     for i in range(len(bar2)):
         heigth = bar2[i].get_height()
-        plt.text(bar2[i].get_x() + bar2[i].get_width()/2, heigth - (heigth * 0.1), round(data_costs[i], 2), size=8, color='white', weight='bold', ha='center', va='bottom')
+        plt.text(bar2[i].get_x() + bar2[i].get_width()/2, heigth - (heigth * 0.1), round(data_costs[i], 2), size=8, color='black', weight='bold', ha='center', va='bottom')
     plt.xticks(x, labels, rotation='vertical')
     plt.ylabel('Total Costs')
 

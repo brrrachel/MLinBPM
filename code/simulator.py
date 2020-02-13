@@ -34,6 +34,10 @@ class Simulator:
     def _remove_activity_from_trace(self, trace_id):
         self.enabled_traces[trace_id][0]['end'] = self.current_time
         self.enabled_traces[trace_id][0]['duration'] = self.current_time - self.enabled_traces[trace_id][0]['start']
+        print(self.enabled_traces[trace_id][0]['duration'])
+        resource_id = self.enabled_traces[trace_id][0]['resource']
+        self.enabled_traces[trace_id][0]['costs'] = self.allocator.resources[resource_id].salary / 3600 * self.enabled_traces[trace_id][0]['duration'].total_seconds()
+        print(self.allocator.resources[resource_id].salary, self.enabled_traces[trace_id][0]['duration'].total_seconds(), self.enabled_traces[trace_id][0]['costs'])
         self.results[trace_id].append(self.enabled_traces[trace_id][0])
         self.enabled_traces[trace_id].pop(0)
         if len(self.enabled_traces[trace_id]) == 0:
@@ -55,7 +59,6 @@ class Simulator:
                 finished = self.allocator.resources[resource_id].proceed_activity(self.current_time)
                 if finished:
                     self.enabled_traces[self.allocator.resources[resource_id].trace_id][0]['status'] = 'done'
-                    self.enabled_traces[self.allocator.resources[resource_id].trace_id][0]['costs'] = self.allocator.resources[resource_id].salary / self.interval.total_seconds()
                     self.allocator.resources[resource_id].set_as_free()
 
     def _update_progress_bar(self):
