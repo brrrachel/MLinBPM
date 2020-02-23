@@ -30,33 +30,6 @@ def plot_costs(data):
     data_duration = []
     data_costs = []
 
-    traces = set()
-    print('plotting comparison of allocators')
-    for trace in data[next(iter(data))]:
-        if trace != 'workload':
-            traces.add(trace)
-
-    labels = list(data.keys())
-    labels.append('Original log')
-    x = np.arange(len(data.keys()))
-
-    for allocator_key in tqdm(data.keys()):
-
-        duration = 0
-        cost = 0
-
-        for trace_key in data[allocator_key].keys():
-            if trace_key != 'workload':
-                for activity in data[allocator_key][trace_key]:
-                    cost_for_activity = activity['costs']
-                    cost += cost_for_activity
-                    duration += (parse(activity['end']) - parse(activity['start'])).total_seconds()
-
-        data_duration.append(duration/3600)  # save as min
-        data_costs.append(cost / 1000)
-
-    print(data_costs, data_duration)
-
     original_data = _load_preprocessed_data(0.0, 0.0)
     original_data = limit_data(original_data, datetime.datetime.strptime("2012/10/01", "%Y/%m/%d"), datetime.datetime.strptime("2012/11/15", "%Y/%m/%d"))
     salaries = calculate_salaries(original_data)
@@ -77,8 +50,32 @@ def plot_costs(data):
             cost += salaries[event['resource']]['salary'] / 3600 * event['duration'].total_seconds()
             duration += event['duration'].total_seconds()
 
-    data_duration.append(duration / 3600)
+    data_duration.append(duration / 3600 / 24)
     data_costs.append(cost / 1000)
+
+    traces = set()
+    print('plotting comparison of allocators')
+    for trace in data[next(iter(data))]:
+        if trace != 'workload':
+            traces.add(trace)
+
+    labels = ['Original Log'] + list(data.keys())
+    x = np.arange(len(labels))
+
+    for allocator_key in tqdm(data.keys()):
+
+        duration = 0
+        cost = 0
+
+        for trace_key in data[allocator_key].keys():
+            if trace_key != 'workload':
+                for activity in data[allocator_key][trace_key]:
+                    cost_for_activity = activity['costs']
+                    cost += cost_for_activity
+                    duration += (parse(activity['end']) - parse(activity['start'])).total_seconds()
+
+        data_duration.append(duration/3600/24)  # save as min
+        data_costs.append(cost / 1000)
 
     print(data_costs, data_duration)
 
@@ -89,7 +86,7 @@ def plot_costs(data):
         heigth = bar1[i].get_height()
         plt.text(bar1[i].get_x() + bar1[i].get_width()/2, heigth, round(data_duration[i], 2), size=8, color='black', weight='bold', ha='center', va='bottom')
     plt.xticks(x, labels, rotation='vertical')
-    plt.ylabel('Total Duration [min]')
+    plt.ylabel('Total Duration [days]')
 
     # Cost Plot
     plt.subplot(1, 2, 2)

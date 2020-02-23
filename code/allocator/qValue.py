@@ -51,10 +51,11 @@ class QValueAllocator:
                     for q_action in self.q[new_state]:
                         if self.q[new_state][q_action] < q_min:
                             q_min = self.q[new_state][q_action]
-                    self.q[state][action] = round((1 - self.lr) * self.q[state][action] + self.lr * (
-                            duration + (self.gamma * q_min)), 2)
+                    q_value = self.q[state][action] + self.lr * ((duration + (self.gamma * q_min)) - self.q[state][action])
+                    self.q[state][action] = q_value
                 else:
-                    self.q[state][action] = round(((1 - self.lr) * self.q[state][action] + self.lr * duration), 2)
+                    q_value = self.q[state][action] + self.lr * (duration - self.q[state][action])
+                    self.q[state][action] = q_value
 
         # resource_distribution(self.q)
         return self

@@ -41,11 +41,10 @@ class QValueAllocatorMultiDimension(QValueAllocator):
                     for q_action in self.q[new_activity]:
                         if self.q[new_activity][q_action][0] < q_min:
                             q_min = self.q[new_activity][q_action][0]
-                    expected_duration = abs(round((1 - self.lr) * self.q[activity][resource][1] + self.lr * (
-                            duration + (self.gamma * q_min)), 2))
+                    expected_duration = round(self.q[activity][resource][1] + self.lr * ((duration + (self.gamma * q_min)) - self.q[activity][resource][1]), 2)
                     self.q[activity][resource] = (expected_duration * (self.resources[resource].salary / 3600), expected_duration)
                 else:
-                    expected_duration = abs(round(((1 - self.lr) * self.q[activity][resource][1] + self.lr * duration), 2))
+                    expected_duration = round(self.q[activity][resource][1] + self.lr * (duration - self.q[activity][resource][1]), 2)
                     self.q[activity][resource] = (expected_duration * (self.resources[resource].salary / 3600), expected_duration)
         return self
 

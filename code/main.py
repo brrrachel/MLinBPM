@@ -17,7 +17,7 @@ if __name__ == '__main__':
     parser.add_option("-q", dest="q_value", help="Run QValue Allocator", action="store_true", default=False)
     parser.add_option("-m", dest="q_value_multi", help="Run QValue Allocator with additional salary dimension", action="store_true", default=False)
     parser.add_option("-w", dest="workload", help="Set Workload for Allocator, default = 1", action="store", default=1, type="int")
-    parser.add_option("-i", dest="interval", help="Interval steps for simulation [Seconds], default = 1800 = 00:30 h", default=30, type="int", action="store")
+    parser.add_option("-i", dest="interval", help="Interval steps for simulation [Seconds], default = 60 = 00:01 h", default=60, type="int", action="store")
     parser.add_option("-s", "--start", dest="start", help="Set Start date to limit data [YYYY/MM/DD], default = 2010/07/01", action="store", default="2010/07/01", type="str")
     parser.add_option("-e", "--end", dest="end", help="Set Start date to limit data [YYYY/MM/DD], default = 2015/02/15", action="store", default="2015/02/15", type="str")
     parser.add_option("-t", dest="threshold", help="Threshold for min occurrence of an activity in the whole dataset, default = 0.0017", default=0.0017, type="float", action="store")

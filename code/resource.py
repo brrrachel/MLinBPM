@@ -40,10 +40,11 @@ class Resource:
             _finish_activity()
             return True
         else:
-            percentage = random.uniform(0, 1)
-            if percentage < 0.0001:
-                _finish_activity()
-                return True
+            # percentage = random.uniform(0, 1)
+            # if percentage < 0.0000001:
+            #     print("random finish")
+            #     _finish_activity()
+            #     return True
             return False
 
     def allocate_for_activity(self, trace_id, activity):
