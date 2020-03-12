@@ -5,6 +5,7 @@ import math
 
 
 class QValueAllocator:
+
     q = {}
     lr = 0.5
     gamma = 0.9
