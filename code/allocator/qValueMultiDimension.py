@@ -1,8 +1,6 @@
 from allocator.qValue import QValueAllocator
 from resource import Resource
-import random
 import math
-from pytimeparse import parse
 from utils import compute_timedelta, get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, parse_timedelta, get_trace_endtime, get_time_range
 
 

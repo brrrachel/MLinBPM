@@ -66,7 +66,7 @@ def skills_distribution_plotting(occurences):
 def input_data_duration_plotting(data):
     # takes the input data and plots for each trace the duration in time
     # good for comparison with plot from allocation_trace_duration_plotting
-    filename = 'plots/duration/inputDataDuration.pdf'
+    filename = 'plots/duration/inputDataDuration.png'
     fig, ax = plt.subplots()
 
     if not _plot_already_available(filename):
@@ -107,43 +107,6 @@ def allocation_trace_duration_plotting(data, allocator, total_num_threshold, tra
         fig.autofmt_xdate()
         plt.tight_layout()
         fig.savefig(filename)
-
-
-def resource_workload_plotting(results, allocator, total_num_threshold, trace_num_threshold):
-    # plots when and what activity by which resource has been performed
-    filename = 'plots/resources/' + allocator + '_' + str(total_num_threshold).split('.')[1] + str(trace_num_threshold).split('.')[1] + '.pdf'
-    fig, ax = plt.subplots()
-
-    resources = set()
-    activities = set()
-
-    if not _plot_already_available(filename):
-        print("Plotting workload of resources")
-        for trace in results.keys():
-            if trace != 'workload':
-                for activity in results[trace]:
-                    resources.add(activity['resource'])
-                    activities.add(activity['activity'])
-        resources = list(resources)
-        activities = list(activities)
-
-        cmap = plt.get_cmap('jet')
-        colors = [cmap(i) for i in np.linspace(0, 1, len(list(activities)))]
-
-        for resource in tqdm(resources):
-            for trace in results.keys():
-                if trace != 'workload':
-                    for activity in results[trace]:
-                        if activity['resource'] == resource:
-                            start, duration = _get_start_duration(activity)
-                            color_index = activities.index(activity['activity'])
-                            ax.hlines(y=resource, xmin=start, xmax=(start + duration), color=colors[color_index], label=activity['activity'])
-
-        _legend_without_duplicate_labels(ax)
-        plt.xlabel('Time')
-        plt.ylabel('Resources')
-        fig.autofmt_xdate()
-        plt.savefig(filename)
 
 
 def overall_workload_plotting(workloads, total_num_threshold, trace_num_threshold, workload, allocator_name):

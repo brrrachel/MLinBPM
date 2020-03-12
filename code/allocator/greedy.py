@@ -6,7 +6,6 @@ from resource import Resource
 class GreedyAllocator:
 
     resources = {}
-
     workload = 1
 
     def __init__(self, workload):
