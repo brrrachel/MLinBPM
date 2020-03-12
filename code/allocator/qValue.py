@@ -1,5 +1,4 @@
-from utils import get_activities, get_resource_ids, get_available_resources, get_earliest_trace, get_latest_trace, \
-    get_trace_endtime, get_time_range, parse_timedelta, compute_timedelta
+from utils import get_activities, get_resource_ids, get_available_resources, parse_timedelta, compute_timedelta
 from resource import Resource
 from tqdm import tqdm
 import math
@@ -18,7 +17,6 @@ class QValueAllocator:
         return
 
     def fit(self, data, salary):
-
         activities = get_activities(data)
         resources = get_resource_ids(data)
 
@@ -42,21 +40,28 @@ class QValueAllocator:
                 activity = activity_instance['resource']
                 duration = parse_timedelta(activity_instance['duration']).total_seconds()
 
-                # when the first matching activity instance is found
+                # when the first matching activity instance for an activity is found
                 if self.q[state][activity] == 0:
+                    # update value without the q-value formula
                     self.q[state][activity] = duration
                     continue
 
+                # consider only activity instances which have a following activity instance
                 if i < (len(trace['events']) - 1):
                     new_state = trace['events'][i + 1]['activity']
                     q_min = 1000000000000000
+
+                    # find lowest q-value for following activity instances
                     for q_action in self.q[new_state]:
                         if self.q[new_state][q_action] < q_min:
                             q_min = self.q[new_state][q_action]
-                    q_value = self.q[state][activity] + self.lr * (
-                                (duration + (self.gamma * q_min)) - self.q[state][activity])
+
+                    # update q-Value in look up table
+                    current_qvalue = self.q[state][activity]
+                    q_value = current_qvalue + self.lr * ((duration + (self.gamma * q_min)) - current_qvalue)
                     self.q[state][activity] = q_value
                 else:
+                    # if this is the last activity instance in trace
                     q_value = self.q[state][activity] + self.lr * (duration - self.q[state][activity])
                     self.q[state][activity] = q_value
 
@@ -77,9 +82,14 @@ class QValueAllocator:
             best_resource = self.resources[first_resource_key]
             for resource_id in available_resources:
                 resource = self.resources[resource_id]
+
+                # only consider resources which have executed this activity ( qValue != 0 )
                 if self.q[activity['activity']][resource_id] != 0:
-                    if self.q[activity['activity']][resource_id] < self.q[activity['activity']][
-                        best_resource.resource_id]:
+
+                    # if a resource with a better q-Value has been found
+                    another_resource_qvalue = self.q[activity['activity']][resource_id]
+                    best_resource_qvalue = self.q[activity['activity']][best_resource.resource_id]
+                    if another_resource_qvalue < best_resource_qvalue:
                         best_resource = resource
 
             if self.q[activity['activity']][best_resource.resource_id] == 0:
