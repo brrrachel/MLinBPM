@@ -5,7 +5,7 @@ from tqdm import tqdm
 import json
 import datetime
 from dataLoader import _load_preprocessed_data, limit_data
-from utils import calculate_salaries
+from utils import calculate_salaries, parse_timedelta
 
 plt.rcParams["font.family"] = "Times New Roman"
 one_hour = datetime.timedelta(hours=1, minutes=0, seconds=0)
@@ -25,7 +25,7 @@ def _load_results(allocator_name, workload, threshold, threshold_occurrence_in_t
         return False
 
 
-def plot_costs(data):
+def _plot_overview(data):
 
     data_duration = []
     data_costs = []
@@ -34,50 +34,34 @@ def plot_costs(data):
     original_data = limit_data(original_data, datetime.datetime.strptime("2012/10/01", "%Y/%m/%d"), datetime.datetime.strptime("2012/11/15", "%Y/%m/%d"))
     salaries = calculate_salaries(original_data)
 
+    # calculate duration and costs for the original log
     cost = 0
     duration = 0
     for trace_id in original_data.keys():
         trace = original_data[trace_id]
         for event in trace['events']:
-            event['duration'] = parse(event['end']) - parse(event['start'])
-            if ('planned' in event) & (event['duration'] < one_hour):
-                event['duration'] = parse(event['planned']) - parse(event['start'])
-            if event['duration'] < one_hour:
-                event['duration'] = one_hour
-            if event['duration'] > one_month:
-                event['duration'] = one_month
-
-            cost += salaries[event['resource']]['salary'] / 3600 * event['duration'].total_seconds()
-            duration += event['duration'].total_seconds()
-
+            duration_in_seconds = parse_timedelta(event['duration']).total_seconds()
+            cost += salaries[event['resource']]['salary'] / 3600 * duration_in_seconds
+            duration += duration_in_seconds
     data_duration.append(duration / 3600 / 24)
     data_costs.append(cost / 1000)
 
-    traces = set()
-    print('plotting comparison of allocators')
-    for trace in data[next(iter(data))]:
-        if trace != 'workload':
-            traces.add(trace)
-
-    labels = ['Original Log'] + list(data.keys())
-    x = np.arange(len(labels))
-
+    # calculate for each allocator duration and costs
     for allocator_key in tqdm(data.keys()):
-
         duration = 0
         cost = 0
-
         for trace_key in data[allocator_key].keys():
             if trace_key != 'workload':
                 for activity in data[allocator_key][trace_key]:
                     cost_for_activity = activity['costs']
                     cost += cost_for_activity
                     duration += (parse(activity['end']) - parse(activity['start'])).total_seconds()
-
-        data_duration.append(duration/3600/24)  # save as min
+        data_duration.append(duration/3600/24)
         data_costs.append(cost / 1000)
 
-    print(data_costs, data_duration)
+    # create dataset labels for plot
+    labels = ['Preprocessed Log'] + list(data.keys())
+    x = np.arange(len(labels))
 
     # Duration Plot
     plt.subplot(1, 2, 1)
@@ -98,16 +82,12 @@ def plot_costs(data):
     plt.ylabel('Total Costs in thousand')
 
     plt.tight_layout()
-
     plt.savefig("plots/comparison/results_comparison.pdf")
 
 
-complete_data = dict()
-complete_data['GreedyAllocator'] = _load_results('GreedyAllocator', '1', 0.0017, 0.005)
-#complete_data['GreedyAllocator_w3'] = _load_results('GreedyAllocator', '3', 0.0017, 0.005)
-complete_data['QValueAllocator'] = _load_results('QValueAllocator', '1', 0.0017, 0.005)
-#complete_data['QValueAllocator_w3'] = _load_results('QValueAllocator', '1', 0.0017, 0.005)
-complete_data['QValueMultiDimension'] = _load_results('QValueMultiDimensionAllocator', '1', 0.0017, 0.005)
-#complete_data['QValueMultiDimension_w3'] = _load_results('QValueMultiDimensionAllocator', '3', 0.0017, 0.005)
-
-plot_costs(complete_data)
+if __name__ == '__main__':
+    complete_data = dict()
+    complete_data['GreedyAllocator'] = _load_results('GreedyAllocator', '1', 0.0017, 0.005)
+    complete_data['QValueAllocator'] = _load_results('QValueAllocator', '1', 0.0017, 0.005)
+    complete_data['QValueMultiDimension'] = _load_results('QValueMultiDimensionAllocator', '1', 0.0017, 0.005)
+    _plot_overview(complete_data)

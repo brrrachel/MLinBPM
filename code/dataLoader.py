@@ -50,6 +50,7 @@ def _load_xes(file):
 
             event['status'] = 'free'
 
+            # calculate durations
             event['duration'] = event['end'] - event['start']
             if event['duration'] < one_hour:
                 event['duration'] = event['end'] - last_end
@@ -97,20 +98,27 @@ def _safe_data(data, threshold, threshold_occurrence_in_traces):
         json.dump(data, fp, default=converter)
 
 
-def _get_occurrence(d):
-    tasks = []
+def _get_occurrence(data):
+    # calculates for each activity how often it has been executed over the whole log
+    activity_instances = []
     occurrence_in_traces = {}
-    for trace in d.keys():
-        tasks_of_trace = []
-        for event in d[trace]['events']:
-            tasks_of_trace += [event['activity']]
-            tasks += [event['activity']]
-        unique_task_of_trace = set(tasks_of_trace)
-        for task in unique_task_of_trace:
-            if task not in occurrence_in_traces.keys():
-                occurrence_in_traces[task] = 0
-            occurrence_in_traces[task] += 1
-    return Counter(tasks), occurrence_in_traces
+    for trace in data.keys():
+        activity_instances_of_trace = []
+
+        # collects for the trace the activity instances
+        for event in data[trace]['events']:
+            activity_instances_of_trace += [event['activity']]
+            activity_instances += [event['activity']]
+
+        # creates a dict for a trace each where the number of occurrences for each activity is saved
+        activitiy_of_trace = set(activity_instances_of_trace)
+        for a in activitiy_of_trace:
+            if a not in occurrence_in_traces.keys():
+                occurrence_in_traces[a] = 0
+            occurrence_in_traces[a] += 1
+
+    # returns the overall activity occurrence and a dict for each trace with the occurrences
+    return Counter(activity_instances), occurrence_in_traces
 
 
 def preprocess(data, total_num_threshold, trace_num_threshold):
@@ -118,14 +126,16 @@ def preprocess(data, total_num_threshold, trace_num_threshold):
     preprocessed_data = {}
 
     occurrences_before, occurrences_in_traces = _get_occurrence(data)
+
+    # calculate the min occurrence value
     min_occurrence_total = sum(list(occurrences_before.values())) * total_num_threshold
     min_occurrence_in_traces = sum(list(occurrences_before.values())) * trace_num_threshold
-    activities_to_delete = []
 
+    # collect all activites which occure less then a threshold (min_occurrence_total or min_occurrence_in_traces)
+    activities_to_delete = []
     for t in occurrences_before.keys():
         if occurrences_before[t] < min_occurrence_total:
             activities_to_delete.append(t)
-
     for t in occurrences_in_traces.keys():
         if occurrences_in_traces[t] < min_occurrence_in_traces:
             activities_to_delete.append(t)
@@ -134,12 +144,18 @@ def preprocess(data, total_num_threshold, trace_num_threshold):
 
     for trace in data.keys():
         start = parse(data[trace]['start'])
+
+        # for dropping outlines, we consider always only a certain timerange
         if datetime.datetime(year=2010, month=7, day=1) < start < datetime.datetime(year=2015, month=2, day=15):
             preprocessed_data[trace] = data[trace].copy()
             preprocessed_data[trace]['events'] = []
             for event in data[trace]['events']:
+
+                # remain only activity instances which should not to be discarded
                 if event['activity'] not in activities_to_delete_unique:
                     preprocessed_data[trace]['events'].append(event.copy())
+
+            # if no activity instances are left in trace, discard the whole trace
             if len(preprocessed_data[trace]['events']) == 0:
                 preprocessed_data.pop(trace)
 
@@ -157,14 +173,15 @@ def preprocess(data, total_num_threshold, trace_num_threshold):
 
 
 def limit_data(data, start, end):
-    # limit data, where start of the first activity instance in a trace and end of the last activity instance in trace are between the defined start and end time
     print('Limiting Data to ' + start.__str__() + ' and ' + end.__str__())
     limited_data = {}
     for trace in data.keys():
+        # check for each trace wether start and end is within the selected time range
         trace_start = parse(data[trace]['start'])
         trace_end = parse(data[trace]['events'][-1]['end'])
         if (start <= trace_start) and (trace_end < end):
             limited_data[trace] = data[trace]
+
     if len(limited_data.keys()) == 0:
         print('No data available.')
         exit(0)
@@ -176,9 +193,11 @@ def load_data(threshold_total, threshold_occurrence_in_traces):
     original_data = _load_preprocessed_data(0.0, 0.0)
     if not original_data:
         original_data = {}
+
         print('Data loading ...')
         for file in files:
             original_data.update(_load_xes(file))
+
         _safe_data(original_data, 0.0, 0.0)
         original_data = _load_preprocessed_data(0.0, 0.0)
 

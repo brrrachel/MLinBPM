@@ -124,7 +124,7 @@ def overall_workload_plotting(workloads, total_num_threshold, trace_num_threshol
 
         fig, ax = plt.subplots()
         plt.yticks(np.arange(min(busy_resources), max(busy_resources)+1, 2.0))
-        ax.plot(timestamps, busy_resources)
+        ax.plot(timestamps, busy_resources, color="darkblue")
 
         ax.set(xlabel='time', ylabel='number of busy resources')
         plt.xticks(rotation=45)
