@@ -16,9 +16,9 @@ if __name__ == '__main__':
     parser.add_option("-q", dest="q_value", help="Run QValue Allocator", action="store_true", default=False)
     parser.add_option("-m", dest="q_value_multi", help="Run QValue Allocator with additional salary dimension", action="store_true", default=False)
     parser.add_option("-w", dest="workload", help="Set Workload for Allocator, default = 1", action="store", default=1, type="int")
-    parser.add_option("-i", dest="interval", help="Interval steps for simulation [Seconds], default = 60 = 1 min", default=60, type="int", action="store")
-    parser.add_option("-s", "--start", dest="start", help="Set Start date to limit data [YYYY/MM/DD], default = 2010/07/01", action="store", default="2010/07/01", type="str")
-    parser.add_option("-e", "--end", dest="end", help="Set Start date to limit data [YYYY/MM/DD], default = 2015/02/15", action="store", default="2015/02/15", type="str")
+    parser.add_option("-i", dest="interval", help="Interval steps for simulation [Seconds], default = 60 = 00:01 h", default=60, type="int", action="store")
+    parser.add_option("-s", "--start", dest="start", help="Set Start date to limit data [YYYY/MM/DD], default = 2012/10/01", action="store", default="2012/10/01", type="str")
+    parser.add_option("-e", "--end", dest="end", help="Set Start date to limit data [YYYY/MM/DD], default = 2012/11/15", action="store", default="2012/11/15", type="str")
     parser.add_option("-t", dest="threshold", help="Threshold for min occurrence of an activity in the whole dataset, default = 0.0017", default=0.0017, type="float", action="store")
     parser.add_option("-u", dest="threshold_traces", help="Threshold for min occurrence of an activity in traces, default = 0.005", default=0.005, type="float", action="store")
     (options, args) = parser.parse_args()
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         allocator_name = 'GreedyAllocator_w' + str(options.workload)
 
     if allocator is None:
-        print("You didn't choose a allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")
+        print("You didn't choose an allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")
         exit(0)
 
     print('Train Model')

@@ -103,11 +103,11 @@ def plot_costs(data):
 
 
 complete_data = dict()
-complete_data['GreedyAllocator_w1'] = _load_results('GreedyAllocator', '1', 0.0017, 0.005)
+complete_data['GreedyAllocator'] = _load_results('GreedyAllocator', '1', 0.0017, 0.005)
 #complete_data['GreedyAllocator_w3'] = _load_results('GreedyAllocator', '3', 0.0017, 0.005)
-complete_data['QValueAllocator_w1'] = _load_results('QValueAllocator', '1', 0.0017, 0.005)
+complete_data['QValueAllocator'] = _load_results('QValueAllocator', '1', 0.0017, 0.005)
 #complete_data['QValueAllocator_w3'] = _load_results('QValueAllocator', '1', 0.0017, 0.005)
-complete_data['QValueMultiDimension_w1'] = _load_results('QValueMultiDimensionAllocator', '1', 0.0017, 0.005)
+complete_data['QValueMultiDimension'] = _load_results('QValueMultiDimensionAllocator', '1', 0.0017, 0.005)
 #complete_data['QValueMultiDimension_w3'] = _load_results('QValueMultiDimensionAllocator', '3', 0.0017, 0.005)
 
 plot_costs(complete_data)
