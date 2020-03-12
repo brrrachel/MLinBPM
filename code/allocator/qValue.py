@@ -33,6 +33,7 @@ class QValueAllocator:
         # iterate over all traces in log
         for trace_id in tqdm(data):
             trace = data[trace_id]
+
             # iterate over each activity instance in trace
             for i in range(len(trace['events'])):
                 activity_instance = trace['events'][i]
@@ -51,7 +52,7 @@ class QValueAllocator:
                     new_state = trace['events'][i + 1]['activity']
                     q_min = 1000000000000000
 
-                    # find lowest q-value for following activity instances
+                    # find the minimal q-Value of all resources
                     for q_action in self.q[new_state]:
                         if self.q[new_state][q_action] < q_min:
                             q_min = self.q[new_state][q_action]
