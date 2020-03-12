@@ -1,13 +1,5 @@
-from dateutil.parser import parse
 import datetime
 import math
-
-
-def _get_cases(data):
-    cases = set()
-    for trace in data.keys():
-        cases.add(tuple([event['activity'] for event in data[trace]['events']]))
-    return cases
 
 
 def get_activities(data):
@@ -17,56 +9,8 @@ def get_activities(data):
     return set(activities)
 
 
-def get_trace_endtime(trace):
-    if type(trace['start']) is str:
-        start = parse(trace['start'])
-    else:
-        start = trace['start']
-    duration = datetime.timedelta(hours=0, minutes=0, seconds=0)
-    for event in trace['events']:
-        if type(event['duration']) is str:
-            if ' days, ' in event['duration']:
-                days, timestamp = event['duration'].split(' days, ')
-            elif ' day, ' in event['duration']:
-                days, timestamp = event['duration'].split(' day, ')
-            else:
-                timestamp = event['duration']
-                days = 0
-            t = datetime.datetime.strptime(timestamp, "%H:%M:%S") + datetime.timedelta(days=int(days))
-            duration += datetime.timedelta(days=t.day, hours=t.hour, minutes=t.minute, seconds=t.second)
-        else:
-            duration += event['duration']
-    return start + duration
-
-
-def get_earliest_trace(data):
-    earliest_trace = data[next(iter(data.keys()))]
-    for trace_id in data.keys():
-        trace = data[trace_id]
-        if parse(trace['start']) < parse(earliest_trace['start']):
-            earliest_trace = trace
-    return earliest_trace
-
-
-def get_latest_trace(data):
-    latest_trace = data[next(iter(data.keys()))]
-    if latest_trace['end'] != '':
-        latest_end = parse(latest_trace['end'])
-    else:
-        latest_end = get_trace_endtime(latest_trace)
-    for trace_id in data.keys():
-        trace = data[trace_id]
-        if trace['end'] != '':
-            end = parse(trace['end'])
-        else:
-            end = get_trace_endtime(trace)
-        if end > latest_end:
-            latest_trace = trace
-    print("regular end of the log: " + str(end))
-    return latest_trace
-
-
 def get_activities_for_resource(data, resource_id):
+    # returns for a resource a set of all executed activities and the average execution time
     activities = {}
     for trace in data.keys():
         for event in data[trace]['events']:
@@ -78,12 +22,15 @@ def get_activities_for_resource(data, resource_id):
                 else:
                     # create entry for this activity
                     activities[activity] = [parse_timedelta(event['duration'])]
+
+    # calculates the average execution time for each activity
     for activity in activities.keys():
         activities[activity] = sum(activities[activity], datetime.timedelta()) / len(activities[activity])
     return activities
 
 
 def get_resource_ids(data):
+    # returns a set of all resource ids of the dataset
     resources = []
     for trace in data.keys():
         resources += [event['resource'] for event in data[trace]['events']]
@@ -91,6 +38,7 @@ def get_resource_ids(data):
 
 
 def normalize_salary(max_value):
+    # returns two lists with the normalized salaries for the number of performed activities
     steps = range(0, max_value+1, 1)
 
     def normalize(x, m):
@@ -103,12 +51,17 @@ def normalize_salary(max_value):
 def calculate_salaries(data):
     resources = get_resource_ids(data)
     result = {}
+
+    # gets the number of performed activites for each resouce
     for resource_id in resources:
         result[resource_id] = {}
         result[resource_id]['activities'] = len(list(get_activities_for_resource(data, resource_id).keys()))
 
+    # normalize the salary
     max_value = max([result[key]['activities'] for key in result.keys()])
     _, salary = normalize_salary(max_value)
+
+    # assign each resource a salary
     for resource_id in resources:
         result[resource_id]['salary'] = salary[result[resource_id]['activities']]
 
@@ -116,27 +69,24 @@ def calculate_salaries(data):
 
 
 def get_available_resources(resources, workload):
+    # returns a list with available resources
     available_resources_id = []
     for resource_id in resources.keys():
         resource = resources[resource_id]
+        # a resource is available if the is still capacity left in its queue
         if resource.workload < workload:
             available_resources_id.append(resource_id)
     return available_resources_id
 
 
 def get_num_of_busy_resources(resources):
+    # returns the number of resources which are currently working
     available_resources_id = []
     for resource_id in resources.keys():
         resource = resources[resource_id]
         if resource.workload > 0:
             available_resources_id.append(resource_id)
     return len(available_resources_id)
-
-
-def get_time_range(data, start_time):
-    latest_trace = get_latest_trace(data)
-    end_time_allocation = get_trace_endtime(latest_trace)
-    return int((end_time_allocation - start_time).total_seconds())
 
 
 def compute_timedelta(seconds):

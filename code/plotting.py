@@ -130,5 +130,4 @@ def overall_workload_plotting(workloads, total_num_threshold, trace_num_threshol
         plt.xticks(rotation=45)
         ax.grid()
         fig.autofmt_xdate()
-
         fig.savefig(filename)

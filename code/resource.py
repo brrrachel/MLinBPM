@@ -1,6 +1,3 @@
-import random
-
-
 class Resource:
 
     resource_id = None
@@ -20,33 +17,29 @@ class Resource:
         self.salary = salary
 
     def set_as_free(self):
+        # is called if an resource has been finished with the execution of an acitivity instance
         self.activity = None
         self.planned_duration = 0
 
+    def allocate_for_activity(self, trace_id, activity_instance):
+        # is called when a resource has been assigned to an activity instance
+        self.workload += 1
+        self.queue.append((trace_id, activity_instance))
+
     def proceed_activity(self, time):
 
-        def _finish_activity():
-            self.workload -= 1
-            print(time.__str__() + " : Resource " + str(self.resource_id) + " finished activity '" + self.activity['activity'] + "' and has a workload of " + str(self.workload) + " now.")
-
         if self.activity is None:
+            # if a resource has been finished with an activity instance and takes the next activity instance from queue
             first_queue = self.queue.pop(0)
             self.trace_id = first_queue[0]
             self.activity = first_queue[1]
             self.planned_duration = self.activity['duration']
 
-
         if (self.activity['start'] + self.planned_duration) <= time:
-            _finish_activity()
+            # completed activity instance
+            self.workload -= 1
+            print(time.__str__() + " : Resource " + str(self.resource_id) + " finished activity '" + self.activity['activity'] + "' and has a workload of " + str(self.workload) + " now.")
             return True
         else:
-            # percentage = random.uniform(0, 1)
-            # if percentage < 0.0000001:
-            #     print("random finish")
-            #     _finish_activity()
-            #     return True
+            # if the resource is still working on the activity instance
             return False
-
-    def allocate_for_activity(self, trace_id, activity):
-        self.workload += 1
-        self.queue.append((trace_id, activity))
