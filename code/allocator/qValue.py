@@ -2,8 +2,6 @@ from utils import get_activities, get_resource_ids, get_available_resources, get
 from resource import Resource
 from tqdm import tqdm
 import math
-from plotting import resource_distribution
-
 
 class QValueAllocator:
 
@@ -57,7 +55,6 @@ class QValueAllocator:
                     q_value = self.q[state][action] + self.lr * (duration - self.q[state][action])
                     self.q[state][action] = q_value
 
-        # resource_distribution(self.q)
         return self
 
     def allocate_resource(self, trace_id, activity):

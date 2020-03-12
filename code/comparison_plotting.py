@@ -99,7 +99,7 @@ def plot_costs(data):
 
     plt.tight_layout()
 
-    plt.savefig("plots/cost/cost_comparison.png")
+    plt.savefig("plots/comparison/results_comparison.pdf")
 
 
 complete_data = dict()

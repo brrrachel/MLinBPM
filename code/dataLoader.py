@@ -2,16 +2,12 @@ import xml.etree.ElementTree as et
 import datetime
 import json
 from collections import Counter
-from plotting import occurrence_plotting
+from plotting import input_data_duration_plotting, activity_occurrence_plotting
 from dateutil.parser import parse
-from utils import parse_timedelta, compute_timedelta
-import statistics
 from operator import getitem
 
 path = '../data/'
 files = ['BPIC15_1.xes', 'BPIC15_2.xes', 'BPIC15_3.xes', 'BPIC15_4.xes', 'BPIC15_5.xes']
-one_second = datetime.timedelta(hours=0, minutes=0, seconds=1)
-two_minutes = datetime.timedelta(hours=0, minutes=2, seconds=0)
 one_hour = datetime.timedelta(hours=1, minutes=0, seconds=0)
 one_month = datetime.timedelta(days=30)
 
@@ -64,7 +60,6 @@ def _load_xes(file):
             if event['duration'] > one_month:
                 event['duration'] = one_month
             last_end = event['end']
-            # INFO: planned is not useful because sometimes planned or end is before start
 
             total_duration.append((event['duration']).total_seconds())
             events.append(event)
@@ -77,11 +72,6 @@ def _load_xes(file):
             'municipality': file.split('.')[0],
             'events': sorted_events
         }
-
-    # print("max-duration", compute_timedelta(max(total_duration)))
-    # print("min-duration", compute_timedelta(min(total_duration)))
-    # print("median-duration", compute_timedelta(statistics.median(total_duration)))
-    # print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
 
     return log
 
@@ -98,7 +88,7 @@ def _load_preprocessed_data(threshold, threshold_occurrence_in_traces):
         return False
 
 
-def _safe_preprocessed_data(data, threshold, threshold_occurrence_in_traces):
+def _safe_data(data, threshold, threshold_occurrence_in_traces):
     def converter(o):
         if isinstance(o, datetime.datetime) or isinstance(o, datetime.timedelta):
             return o.__str__()
@@ -107,7 +97,7 @@ def _safe_preprocessed_data(data, threshold, threshold_occurrence_in_traces):
         json.dump(data, fp, default=converter)
 
 
-def get_occurrence(d):
+def _get_occurrence(d):
     tasks = []
     occurrence_in_traces = {}
     for trace in d.keys():
@@ -127,7 +117,7 @@ def preprocess(data, total_num_threshold, trace_num_threshold):
     print('Start preprocess')
     preprocessed_data = {}
 
-    occurrences_before, occurrences_in_traces = get_occurrence(data)
+    occurrences_before, occurrences_in_traces = _get_occurrence(data)
     min_occurrence_total = sum(list(occurrences_before.values())) * total_num_threshold
     min_occurrence_in_traces = sum(list(occurrences_before.values())) * trace_num_threshold
     activities_to_delete = []
@@ -153,8 +143,8 @@ def preprocess(data, total_num_threshold, trace_num_threshold):
             if len(preprocessed_data[trace]['events']) == 0:
                 preprocessed_data.pop(trace)
 
-    occurrences_after, occurrences_in_traces_after = get_occurrence(preprocessed_data)
-    occurrence_plotting(occurrences_after, total_num_threshold, trace_num_threshold)
+    occurrences_after, occurrences_in_traces_after = _get_occurrence(preprocessed_data)
+    activity_occurrence_plotting(occurrences_after, total_num_threshold, trace_num_threshold)
 
     print('Removed ' + str((1 - len(list(occurrences_after.values())) / len(list(occurrences_before.values()))) * 100) + ' % of the unique activities')
     print('Removed ' + str((1 - sum(list(occurrences_after.values())) / sum(list(occurrences_before.values()))) * 100) + ' % of all activities')
@@ -167,7 +157,7 @@ def preprocess(data, total_num_threshold, trace_num_threshold):
 
 
 def limit_data(data, start, end):
-    # limit data, where start of the trace and end of the last event in trace are between the defined start and end time
+    # limit data, where start of the first activity instance in a trace and end of the last activity instance in trace are between the defined start and end time
     print('Limiting Data to ' + start.__str__() + ' and ' + end.__str__())
     limited_data = {}
     for trace in data.keys():
@@ -189,13 +179,15 @@ def load_data(threshold_total, threshold_occurrence_in_traces):
         print('Data loading ...')
         for file in files:
             original_data.update(_load_xes(file))
-        _safe_preprocessed_data(original_data, 0.0, 0.0)
+        _safe_data(original_data, 0.0, 0.0)
         original_data = _load_preprocessed_data(0.0, 0.0)
+
+    input_data_duration_plotting(original_data)
 
     preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
     if not preprocessed_data:
         preprocessed_data = preprocess(original_data, threshold_total, threshold_occurrence_in_traces)
-        _safe_preprocessed_data(preprocessed_data, threshold_total, threshold_occurrence_in_traces)
+        _safe_data(preprocessed_data, threshold_total, threshold_occurrence_in_traces)
         preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
 
     if preprocessed_data:

@@ -1,12 +1,11 @@
 from dataLoader import load_data, limit_data
-from plotting import allocation_duration_plotting, resource_workload_plotting, activity_occurence_histogram, plot_workload, input_data_duration_plotting, trace_duration_plotting
+from plotting import resource_workload_plotting, skills_distribution_plotting, overall_workload_plotting, allocation_trace_duration_plotting
 from simulator import Simulator
 from allocator.greedy import GreedyAllocator
 from allocator.qValue import QValueAllocator
 from allocator.qValueMultiDimension import QValueAllocatorMultiDimension
 import datetime
 from utils import compute_timedelta, parse_timedelta, calculate_salaries
-import statistics
 from optparse import OptionParser
 import json
 
@@ -33,16 +32,7 @@ if __name__ == '__main__':
     print('Data Loaded')
 
     salary = calculate_salaries(data)
-    activity_occurence_histogram(salary)
-
-    # total_duration = []
-    # for trace_id in original_data.keys():
-    #     for event in original_data[trace_id]['events']:
-    #         total_duration.append((parse_timedelta(event['duration'])).total_seconds())
-    # print("max-duration", compute_timedelta(max(total_duration)))
-    # print("min-duration", compute_timedelta(min(total_duration)))
-    # print("median-duration", compute_timedelta(statistics.median(total_duration)))
-    # print("mean-duration", compute_timedelta(statistics.mean(total_duration)))
+    skills_distribution_plotting(salary)
 
     allocator = None
     allocator_name = None
@@ -65,11 +55,9 @@ if __name__ == '__main__':
         print("You didn't choose a allocator. Use -g for greedy, -q for standard qValue or -m for qValue with additional salary dimension")
         exit(0)
 
-    # input_data_duration_plotting(limited_data, options.threshold, options.threshold_traces)
-
     print('Train Model')
     allocator.fit(original_data, salary)
-    print('Allocate Cases')
+    print('Start Allocating')
     results = Simulator(options.interval, options.end).start(allocator, limited_data)
 
     # evaluate results
@@ -78,9 +66,9 @@ if __name__ == '__main__':
             return o.__str__()
     with open('results/' + str(options.threshold).split('.')[1] + '_' + str(options.threshold_traces).split('.')[1] + '_' + allocator_name + '.json', 'w') as fp:
         json.dump(results, fp, default=converter)
-    # allocation_duration_plotting(results, allocator_name, options.threshold)
-    # resource_workload_plotting(results, allocator_name, options.threshold, options.threshold_traces)
-    plot_workload(results['workload'], options.threshold, options.threshold_traces, str(options.workload), allocator_name.split("_")[0])
-    trace_duration_plotting(results, allocator_name.split("_")[0], options.threshold, options.threshold_traces, str(options.workload))
+
+    resource_workload_plotting(results, allocator_name, options.threshold, options.threshold_traces)
+    overall_workload_plotting(results['workload'], options.threshold, options.threshold_traces, str(options.workload), allocator_name.split("_")[0])
+    allocation_trace_duration_plotting(results, allocator_name.split("_")[0], options.threshold, options.threshold_traces, str(options.workload))
 
     print('Finished')
