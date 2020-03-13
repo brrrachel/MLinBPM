@@ -7,7 +7,8 @@ def get_activities(data):
     activities = []
     for trace in data.keys():
         activities += [event['activity'] for event in data[trace]['events']]
-    return set(activities)
+    sorted_activities = list(sorted(set(activities)))
+    return sorted_activities
 
 
 def get_activities_for_resource(data, resource_id):
@@ -35,7 +36,10 @@ def get_resource_ids(data):
     resources = []
     for trace in data.keys():
         resources += [event['resource'] for event in data[trace]['events']]
-    return set(resources)
+
+    sorted_resources = list(sorted(set(resources)))
+    return sorted_resources
+
 
 def get_earliest_trace(data):
     earliest_trace = data[next(iter(data.keys()))]
@@ -81,9 +85,8 @@ def get_available_resources(resources, workload):
     # returns a list with available resources
     available_resources_id = []
     for resource_id in resources.keys():
-        resource = resources[resource_id]
         # a resource is available if the is still capacity left in its queue
-        if resource.workload < workload:
+        if resources[resource_id].workload < workload:
             available_resources_id.append(resource_id)
     return available_resources_id
 

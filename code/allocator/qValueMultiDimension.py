@@ -66,7 +66,7 @@ class QValueAllocatorMultiDimension(QValueAllocator):
 
             # take the first fitting resource
             first_resource_key = None
-            for resource_iter in self.q[activity['activity']]:
+            for resource_iter in available_resources:
                 if self.q[activity['activity']][resource_iter][0] > 0:
                     first_resource_key = resource_iter
                     break
