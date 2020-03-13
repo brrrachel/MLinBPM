@@ -98,7 +98,7 @@ def allocation_trace_duration_plotting(data, allocator, total_num_threshold, tra
             if trace != 'workload':
                 for event in data[trace]:
                     start, duration = _get_start_duration(event)
-                    ax.hlines(y=trace, xmin=start, xmax=(start + duration), colors="orange")
+                    ax.hlines(y=trace, xmin=start, xmax=(start + duration), colors="brown")
 
         plt.xticks(rotation=45)
         ax.set(xlabel='Time', ylabel='Traces')
@@ -124,7 +124,7 @@ def overall_workload_plotting(workloads, total_num_threshold, trace_num_threshol
 
         fig, ax = plt.subplots()
         plt.yticks(np.arange(min(busy_resources), max(busy_resources)+1, 2.0))
-        ax.plot(timestamps, busy_resources, color="darkblue")
+        ax.plot(timestamps, busy_resources, color='brown')
 
         ax.set(xlabel='time', ylabel='number of busy resources')
         plt.xticks(rotation=45)
