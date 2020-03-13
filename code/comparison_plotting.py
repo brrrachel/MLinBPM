@@ -89,9 +89,9 @@ if __name__ == '__main__':
 
     # load all result files
     complete_data = dict()
-    complete_data['GreedyAllocator'] = _load_results('GreedyAllocator', '1', 0.0017, 0.005)
-    complete_data['QValueAllocator'] = _load_results('QValueAllocator', '1', 0.0017, 0.005)
-    complete_data['QValueMultiDimension'] = _load_results('QValueMultiDimensionAllocator', '1', 0.0017, 0.005)
+    complete_data['Role-Based Allocator'] = _load_results('GreedyAllocator', '1', 0.0017, 0.005)
+    complete_data['Q-Value Allocator'] = _load_results('QValueAllocator', '1', 0.0017, 0.005)
+    complete_data['Multi-Objective Allocator'] = _load_results('QValueMultiDimensionAllocator', '1', 0.0017, 0.005)
 
     # start with plotting
     _plot_overview(complete_data)
