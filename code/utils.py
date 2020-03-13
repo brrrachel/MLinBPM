@@ -1,5 +1,6 @@
 import datetime
 import math
+from dateutil.parser import parse
 
 
 def get_activities(data):
@@ -35,6 +36,14 @@ def get_resource_ids(data):
     for trace in data.keys():
         resources += [event['resource'] for event in data[trace]['events']]
     return set(resources)
+
+def get_earliest_trace(data):
+    earliest_trace = data[next(iter(data.keys()))]
+    for trace_id in data.keys():
+        trace = data[trace_id]
+        if parse(trace['start']) < parse(earliest_trace['start']):
+            earliest_trace = trace
+    return earliest_trace
 
 
 def normalize_salary(max_value):
