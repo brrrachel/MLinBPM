@@ -176,7 +176,7 @@ def limit_data(data, start, end):
     print('Limiting Data to ' + start.__str__() + ' and ' + end.__str__())
     limited_data = {}
     for trace in data.keys():
-        # check for each trace wether start and end is within the selected time range
+        # check for each trace weather start and end is within the selected time range
         trace_start = parse(data[trace]['start'])
         trace_end = parse(data[trace]['events'][-1]['end'])
         if (start <= trace_start) and (trace_end < end):
@@ -190,6 +190,7 @@ def limit_data(data, start, end):
 
 def load_data(threshold_total, threshold_occurrence_in_traces):
 
+    # load preprocessed data if available otherwise load the files
     original_data = _load_preprocessed_data(0.0, 0.0)
     if not original_data:
         original_data = {}
@@ -203,6 +204,7 @@ def load_data(threshold_total, threshold_occurrence_in_traces):
 
     input_data_duration_plotting(original_data)
 
+    # preprocess data if original data has been loaded
     preprocessed_data = _load_preprocessed_data(threshold_total, threshold_occurrence_in_traces)
     if not preprocessed_data:
         preprocessed_data = preprocess(original_data, threshold_total, threshold_occurrence_in_traces)

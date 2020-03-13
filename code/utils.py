@@ -4,6 +4,7 @@ from dateutil.parser import parse
 
 
 def get_activities(data):
+    # returns a sorted list of all activities
     activities = []
     for trace in data.keys():
         activities += [event['activity'] for event in data[trace]['events']]
@@ -42,6 +43,7 @@ def get_resource_ids(data):
 
 
 def get_earliest_trace(data):
+    # returns the trace of the log which starts at first
     earliest_trace = data[next(iter(data.keys()))]
     for trace_id in data.keys():
         trace = data[trace_id]
@@ -102,6 +104,7 @@ def get_num_of_busy_resources(resources):
 
 
 def compute_timedelta(seconds):
+    # creates on a basis of a number of seconds a timedelta object
     num_days = math.floor(seconds / (24 * 3600))
     rest_seconds = seconds - (num_days * 24 * 3600)
     num_hours = math.floor(rest_seconds / 3600)
@@ -112,6 +115,7 @@ def compute_timedelta(seconds):
 
 
 def parse_timedelta(text):
+    # parses a string to a timedelta object
     days = None
     timestamp = None
     if ' days, ' in text:

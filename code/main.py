@@ -11,6 +11,7 @@ import json
 
 if __name__ == '__main__':
 
+    # declare all options
     parser = OptionParser()
     parser.add_option("-g", dest="greedy", help="Run Greedy Allocator", action="store_true", default=False)
     parser.add_option("-q", dest="q_value", help="Run QValue Allocator", action="store_true", default=False)
@@ -23,17 +24,22 @@ if __name__ == '__main__':
     parser.add_option("-u", dest="threshold_traces", help="Threshold for min occurrence of an activity in traces, default = 0.005", default=0.005, type="float", action="store")
     (options, args) = parser.parse_args()
 
+    # load and preprocess data
     print('Selected Thresholds: ' + str(options.threshold) + " and " + str(options.threshold_traces))
     data, original_data = load_data(options.threshold, options.threshold_traces)
 
+    # limit data
     start = datetime.datetime.strptime(options.start, "%Y/%m/%d")
     end = datetime.datetime.strptime(options.end, "%Y/%m/%d")
     limited_data = limit_data(data, start, end)
+
     print('Data Loaded')
 
+    # calculate salary
     salary = calculate_salaries(data)
     skills_distribution_plotting(salary)
 
+    # initialize the allocator
     allocator = None
     allocator_name = None
     if options.q_value and options.q_value_multi or options.q_value and options.greedy or options.greedy and options.q_value_multi or options.q_value and options.q_value_multi and options.greedy:
@@ -57,6 +63,7 @@ if __name__ == '__main__':
 
     print('Train Model')
     allocator.fit(original_data, salary)
+
     print('Start Allocating')
     results = Simulator(options.interval, options.end).start(allocator, limited_data)
 
@@ -66,7 +73,6 @@ if __name__ == '__main__':
             return o.__str__()
     with open('results/' + str(options.threshold).split('.')[1] + '_' + str(options.threshold_traces).split('.')[1] + '_' + allocator_name + '.json', 'w') as fp:
         json.dump(results, fp, default=converter)
-
     overall_workload_plotting(results['workload'], options.threshold, options.threshold_traces, str(options.workload), allocator_name.split("_")[0])
     allocation_trace_duration_plotting(results, allocator_name.split("_")[0], options.threshold, options.threshold_traces, str(options.workload))
 

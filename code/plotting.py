@@ -8,6 +8,7 @@ plt.rcParams["font.family"] = "Times New Roman"
 
 
 def _plot_already_available(filename):
+    # checks weather a plot is already available
     try:
         with open(filename, 'r') as fp:
             return True
@@ -16,6 +17,7 @@ def _plot_already_available(filename):
 
 
 def _get_start_duration(activity):
+    # returns the parsed start point of an activity instance and the parsed duration
     start = None
     duration = None
     if type(activity['start']) is str:
